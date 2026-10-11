@@ -16,3 +16,5 @@ packaging==26.3
 pluggy==1.6.0
 Pygments==2.21.0
 pytest==9.1.1
+riscv-arch-test: branch act4, commit 7f7d735
+ACT4 tooling via mise: Ruby 3.4.11, uv 0.12.23, Bundler 4.0.22
