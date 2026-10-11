@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -uo pipefail
+cd "$(dirname "$0")/.."
+source .venv/bin/activate
+mkdir -p build logs
+status=0
+check() { if [ "$2" = "$3" ]; then echo "PASS  $1"; else echo "FAIL  $1 (got $2, want $3)"; status=1; fi; }
+
+for t in pass fail; do
+  riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles \
+    -T sw/link.ld sw/$t.S -o build/$t.elf || status=1
+done
+timeout 20 sail_riscv_sim --rv32 build/pass.elf > logs/sail_pass.log 2>&1; check "sail: pass.elf exits 0" $? 0
+timeout 20 sail_riscv_sim --rv32 build/fail.elf > logs/sail_fail.log 2>&1; check "sail: fail.elf exits 1 (harness detects failure)" $? 1
+
+make -C smoke clean > /dev/null 2>&1
+make -C smoke > logs/smoke.log 2>&1; check "smoke: make exit status" $? 0
+grep -qE "TESTS=[0-9]+ PASS=[0-9]+ FAIL=0" logs/smoke.log; check "smoke: no failing cocotb tests" $? 0
+
+[ $status -eq 0 ] && echo "ALL PASS" || echo "REGRESSION FAILED"
+exit $status

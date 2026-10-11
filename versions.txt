@@ -1,0 +1,13 @@
+PRETTY_NAME="Ubuntu 26.04.1 LTS"
+riscv64-unknown-elf-gcc () 16.1.0
+GNU assembler (GNU Binutils) 2.47.20260726
+sail 0.15
+Verilator 5.052 2026-09-05 rev v5.052
+Python 3.14.4
+cocotb==2.1.0
+find_libpython==0.5.1
+iniconfig==2.3.1
+packaging==26.3
+pluggy==1.6.0
+Pygments==2.21.0
+pytest==9.1.1

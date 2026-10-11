@@ -1,0 +1,8 @@
+.venv/
+sim_build/
+build/
+logs/
+*.elf
+results.xml
+__pycache__/
+downloads/
