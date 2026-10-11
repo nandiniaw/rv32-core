@@ -19,3 +19,8 @@ Update (objdump + Sail trace of I-nop-00 and I-xori-00):
 - CSR use per ELF: csrrs mstatus and csrrw fcsr in .text.rvmodel (boot code at rvmodel_boot), csrrs fflags in the test/framework code. This gives 2 csrrs + 1 csrrw per test, matching the totals (78 / 39).
 - fmv.w.x: 32 per ELF, all in .text.rvmodel; 32 Sail trace lines mention fmv, so Sail executes them (probably FP register initialisation). An earlier guess that this was data decoded as code was wrong.
 - All of this F-related code may depend on the Sail config declaring F. Whether a DUT config without F produces the same code is not yet verified.
+
+Update 2:
+- config/sail/sail-RVI20U32/rvmodel_macros.h contains no fmv/fcsr/mstatus/fflags text.
+- fflags appears in tests/env/rvtest_failure_code.h (failure-path routines), so the fflags CSR read in each ELF is probably not executed in a passing run (unconfirmed).
+- sail-RVI20U32.yaml declares I, M, Zmmul, A, F, D, C, Zicntr, Zihpm, Zicsr, Zifencei, Zaamo, Zalrsc, Zca, Zcf, Zcd, Sm; the F/D boot code likely follows from that. Whether an I+Zicsr DUT config avoids it is not verified.
