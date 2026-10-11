@@ -17,5 +17,8 @@ make -C smoke clean > /dev/null 2>&1
 make -C smoke > logs/smoke.log 2>&1; check "smoke: make exit status" $? 0
 grep -qE "TESTS=[0-9]+ PASS=[0-9]+ FAIL=0" logs/smoke.log; check "smoke: no failing cocotb tests" $? 0
 
+./scripts/rv32ui_sail.sh > logs/rv32ui_sail.log 2>&1; check "sail: rv32ui oracle run" $? 0
+tail -n 1 logs/rv32ui_sail.log
+
 [ $status -eq 0 ] && echo "ALL PASS" || echo "REGRESSION FAILED"
 exit $status
