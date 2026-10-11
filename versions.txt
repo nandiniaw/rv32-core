@@ -7,7 +7,8 @@ Verilator 5.052 2026-09-05 rev v5.052
 verilator source v5.052
 riscv-gnu-toolchain d118e5335a33d4dc77fdc64e5a5223931ab422a0
 riscv-tests 7b68f7b91f827f8d94cc1c57ff123752c5c8f704
-Python 3.14.4
+python 3.14.4 (main, Aug 20 2026, 10:41:58) [GCC 15.2.0]
+libpython3.14:amd64	3.14.4-1ubuntu0.2
 cocotb==2.1.0
 find_libpython==0.5.1
 iniconfig==2.3.1

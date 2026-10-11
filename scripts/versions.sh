@@ -11,7 +11,8 @@ source .venv/bin/activate
   echo "verilator source $(git -C ~/verilator describe --tags)"
   echo "riscv-gnu-toolchain $(git -C ~/riscv-gnu-toolchain rev-parse HEAD)"
   echo "riscv-tests $(git -C ~/riscv-tests rev-parse HEAD)"
-  python --version
+  python -c "import sys; print(\"python\", sys.version)"
+  dpkg-query -W libpython3.14
   pip freeze
 } > versions.txt
 cat versions.txt
