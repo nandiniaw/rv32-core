@@ -8,11 +8,14 @@ Evidence:
 - 39 self-checking ELFs built; all 39 print "RVCP-SUMMARY: TEST PASSED" and exit 0 on Sail 0.15.
 - Compile flags (logs/act4_spike_verbose.log line 11): -march=rv32i -Xassembler -march=rv32i_zicsr_zifencei -mabi=ilp32 -O0 -mcmodel=medany -nostdlib, __stack_size=128.
 - ELF arch attribute: rv32i2p1_zicsr2p0_zifencei2p0. All 270848 disassembled lines are 32-bit encodings.
-- Harness code uses CSR instructions: 78 csrrs + 39 csrrw across 39 ELFs.
 - Largest memory extent across ELFs: 0x800233a0 (140.9 KiB above 0x80000000).
 
 Not shown:
 - Equivalence with GCC 15.
 - Anything about our DUT. Privileged tests were not generated (include_priv_tests False).
 
-Open: fmv.w.x appears 1248 times in disassembly although -march excludes F; probably data decoded as code, unconfirmed.
+
+Update (objdump + Sail trace of I-nop-00 and I-xori-00):
+- CSR use per ELF: csrrs mstatus and csrrw fcsr in .text.rvmodel (boot code at rvmodel_boot), csrrs fflags in the test/framework code. This gives 2 csrrs + 1 csrrw per test, matching the totals (78 / 39).
+- fmv.w.x: 32 per ELF, all in .text.rvmodel; 32 Sail trace lines mention fmv, so Sail executes them (probably FP register initialisation). An earlier guess that this was data decoded as code was wrong.
+- All of this F-related code may depend on the Sail config declaring F. Whether a DUT config without F produces the same code is not yet verified.
