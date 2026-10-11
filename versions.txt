@@ -2,7 +2,11 @@ PRETTY_NAME="Ubuntu 26.04.1 LTS"
 riscv64-unknown-elf-gcc () 16.1.0
 GNU assembler (GNU Binutils) 2.47.20260726
 sail 0.15
+sail tarball sha256 8bb3626a6ce5d45c1d1fa7b907f9d9602cc23270883e470db5d6401f26a2e143
 Verilator 5.052 2026-09-05 rev v5.052
+verilator source v5.052
+riscv-gnu-toolchain d118e5335a33d4dc77fdc64e5a5223931ab422a0
+riscv-tests 7b68f7b91f827f8d94cc1c57ff123752c5c8f704
 Python 3.14.4
 cocotb==2.1.0
 find_libpython==0.5.1
