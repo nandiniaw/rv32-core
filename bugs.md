@@ -37,3 +37,15 @@
 - Injected: rtl/branch_cmp.sv default case changed from `taken = 0` to `taken = eq`.
 - Caught by: test_corner_pairs_all_funct3 and test_equal_and_adjacent_values. NOT caught by test_random_pairs (random operands are almost never equal), so the directed equal-value tests are needed.
 - Injected, not found.
+
+### MUT-007: byte load sign-extends from bit 6 instead of bit 7
+- Injected: rtl/lsu.sv (scripts/mutations.sh). Caught by: test_load_selection_and_extension only.
+- Injected, not found.
+
+### MUT-008: half-word store/load mask lanes swapped between low and high half
+- Injected: rtl/lsu.sv (scripts/mutations.sh). Caught by: test_store_lanes_and_resulting_memory and test_load_selection_and_extension.
+- Injected, not found.
+
+### MUT-009: word access at offset 1 not flagged misaligned (check looks only at addr bit 1)
+- Injected: rtl/lsu.sv (scripts/mutations.sh). Caught by: test_store_lanes_and_resulting_memory and test_load_selection_and_extension.
+- Injected, not found.

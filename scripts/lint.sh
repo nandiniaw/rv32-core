@@ -8,4 +8,5 @@ lint alu rtl/rv32_pkg.sv rtl/alu.sv
 lint imm_gen rtl/rv32_pkg.sv rtl/imm_gen.sv
 lint decoder rtl/rv32_pkg.sv rtl/decoder.sv
 lint branch_cmp rtl/branch_cmp.sv
+lint lsu rtl/lsu.sv
 exit $status
