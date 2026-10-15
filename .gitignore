@@ -6,3 +6,4 @@ logs/
 results.xml
 __pycache__/
 downloads/
+sim_build_mut/
