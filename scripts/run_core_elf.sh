@@ -12,7 +12,7 @@ trace=/tmp/$name.core.trace
 python3 "$root/scripts/elf2hex.py" "$elf" "$hex" 65536 || exit 2
 cd "$root/tests/system" || exit 2
 rm -f results.xml
-ELF="$elf" MAX_INSTR="$max" TRACE_OUT="$trace" make COCOTB_PLUSARGS="+HEX=$hex" > "/tmp/$name.sim.log" 2>&1
+ELF="$elf" MAX_INSTR="$max" TRACE_OUT="$trace" make ${MAKE_ARGS:-} COCOTB_PLUSARGS="+HEX=$hex" > "/tmp/$name.sim.log" 2>&1
 rc=$?
 fails=$(grep -c "<failure" results.xml 2>/dev/null)
 fails=${fails:-0}
