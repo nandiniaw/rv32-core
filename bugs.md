@@ -15,10 +15,15 @@
 
 ### MUT-002: B-type immediate bits [12] and [11] sourced from swapped instruction bits
 - Injected: rtl/imm_gen.sv B case `{insn[31], insn[7], ...}` swapped to `{insn[7], insn[31], ...}` (scripts/mut002.sh).
-- Caught by: tests/unit/test_imm_gen.py (2 tests failed in the first run on the pinned stack; the test names are in /tmp/mut002.log).
+- Caught by: tests/unit/test_imm_gen.py: test_b_roundtrip and test_raw_words_against_arithmetic_reference (TESTS=8 PASS=6 FAIL=2 on Verilator 5.052 / cocotb 2.1.0).
 - Injected, not found.
 
-### MUT-002: B-type immediate bits [12] and [11] sourced from swapped instruction bits
-- Injected: rtl/imm_gen.sv B case `{insn[31], insn[7], ...}` swapped to `{insn[7], insn[31], ...}` (scripts/mut002.sh).
-- Caught by: tests/unit/test_imm_gen.py: test_b_roundtrip and test_raw_words_against_arithmetic_reference (TESTS=8 PASS=6 FAIL=2 on Verilator 5.052 / cocotb 2.1.0).
+### MUT-003: decoder selects SUB from funct7[4] instead of funct7[5]
+- Injected: rtl/decoder.sv OP funct3=000 case (scripts/mutations.sh).
+- Caught by: test_every_rv32i_instruction_from_assembler and test_reserved_encodings_and_illegal_side_effects.
+- Injected, not found.
+
+### MUT-004: decoder accepts reserved load funct3 = 011
+- Injected: rtl/decoder.sv LOAD case (scripts/mutations.sh).
+- Caught by: test_reserved_encodings_and_illegal_side_effects only. Shows why the reserved sweep exists.
 - Injected, not found.

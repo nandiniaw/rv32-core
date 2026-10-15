@@ -5,5 +5,6 @@ status=0
 lint() { echo "== $1"; verilator --lint-only -Wall --top-module "$1" "${@:2}" || status=1; }
 lint regfile rtl/regfile.sv
 lint alu rtl/rv32_pkg.sv rtl/alu.sv
-lint imm_gen rtl/imm_gen.sv
+lint imm_gen rtl/rv32_pkg.sv rtl/imm_gen.sv
+lint decoder rtl/rv32_pkg.sv rtl/decoder.sv
 exit $status
