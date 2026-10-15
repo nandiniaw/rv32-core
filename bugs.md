@@ -27,3 +27,13 @@
 - Injected: rtl/decoder.sv LOAD case (scripts/mutations.sh).
 - Caught by: test_reserved_encodings_and_illegal_side_effects only. Shows why the reserved sweep exists.
 - Injected, not found.
+
+### MUT-005: BLT compares unsigned
+- Injected: rtl/branch_cmp.sv `3'b100: taken = lt` changed to `taken = ltu` (scripts/mutations.sh).
+- Caught by: all three tests in tests/unit/test_branch_cmp.py.
+- Injected, not found.
+
+### MUT-006: reserved funct3 (010/011) branches when operands are equal
+- Injected: rtl/branch_cmp.sv default case changed from `taken = 0` to `taken = eq`.
+- Caught by: test_corner_pairs_all_funct3 and test_equal_and_adjacent_values. NOT caught by test_random_pairs (random operands are almost never equal), so the directed equal-value tests are needed.
+- Injected, not found.
