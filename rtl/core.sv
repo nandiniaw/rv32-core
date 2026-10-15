@@ -111,12 +111,13 @@ module core import rv32_pkg::*; #(
     );
     assign dmem_addr  = {alu_result[31:2], 2'b00};
     assign dmem_wdata = lsu_wdata;
-    assign dmem_wmask = (mem_we && active) ? lsu_mask : 4'b0000;
 
     // ---- trap (placeholder until Phase 4) ----
     logic jump_misaligned, trap;
     assign jump_misaligned = (is_jal || is_jalr || (is_branch && taken)) && next_pc[1];
     assign trap            = illegal || lsu_misaligned || jump_misaligned;
+    // A trapping instruction must not write memory.
+    assign dmem_wmask = (mem_we && active && !trap) ? lsu_mask : 4'b0000;
 
     // ---- write back ----
     always_comb begin
@@ -159,8 +160,8 @@ module core import rv32_pkg::*; #(
     assign rvfi_pc_rdata  = pc;
     assign rvfi_pc_wdata  = trap ? pc : next_pc;
     assign rvfi_mem_addr  = dmem_addr;
-    assign rvfi_mem_rmask = mem_re ? lsu_mask : 4'b0000;
-    assign rvfi_mem_wmask = mem_we ? lsu_mask : 4'b0000;
+    assign rvfi_mem_rmask = (mem_re && !trap) ? lsu_mask : 4'b0000;
+    assign rvfi_mem_wmask = (mem_we && !trap) ? lsu_mask : 4'b0000;
     assign rvfi_mem_rdata = dmem_rdata;
     assign rvfi_mem_wdata = lsu_wdata;
 endmodule
