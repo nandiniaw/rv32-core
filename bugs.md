@@ -85,3 +85,15 @@
 ### CMUT-009: store data not forwarded (uses the value read in ID)
 - Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 6 of 41 ELFs (ld_st, sb, sh, st_ld, sw, ls_edge).
 - Injected, not found.
+
+### CMUT-010: MEM->EX forwarding to rs2 also forwards writes to x0
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.
+
+### CMUT-011: older writer (WB) wins over younger writer (MEM) when both match rs1
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.
+
+### CMUT-012: load-use stall ignores rs2
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.

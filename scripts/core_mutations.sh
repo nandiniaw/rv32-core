@@ -14,4 +14,7 @@ run CMUT-006 core.sv 's/assign load_use = id_valid/assign load_use = 1 == 0 \&\&
 run CMUT-007 core.sv 's/assign id_rs1_data = (wb_rf_we && wb_rd != 5.d0 && wb_rd == id_rs1)/assign id_rs1_data = (1 == 0)/' build/rv32ui/sub.elf
 run CMUT-008 core.sv 's/if (kill_younger || load_use) ex_valid/if (mem_trap || ex_trap || load_use) ex_valid/' build/rv32ui/beq.elf
 run CMUT-009 core.sv 's/mem_rs2_val <= fwd2;/mem_rs2_val <= ex_rs2_data;/' build/rv32ui/sw.elf
+run CMUT-010 core.sv 's/if (mem_wr && mem_rd != 5.d0 && mem_rd == ex_rs2)/if (mem_wr \&\& mem_rd == ex_rs2)/' build/haz.elf
+run CMUT-011 core.sv 's/if (mem_wr && mem_rd != 5.d0 && mem_rd == ex_rs1) fwd1 = mem_fwd;/if (mem_wr \&\& mem_rd != 0 \&\& mem_rd == ex_rs1 \&\& !(wb_rf_we \&\& wb_rd == ex_rs1)) fwd1 = mem_fwd;/' build/haz.elf
+run CMUT-012 core.sv 's/ || (ex_rd == id_rs2))/)/' build/haz.elf
 exit $status
