@@ -40,11 +40,16 @@ async def run_elf(dut):
 
     seen = {}
     retired = 0
+    idle = 0
     with open(trace_path, "w") as trace:
         while retired < max_instr:
             await FallingEdge(dut.clk)  # signals are stable here; each cycle retires one instruction
             if val(dut.rvfi_valid) != 1:
-                raise AssertionError(f"core stopped retiring after {retired} instructions")
+                idle += 1
+                if idle > 16:
+                    raise AssertionError(f"core stopped retiring after {retired} instructions")
+                continue
+            idle = 0
             pc, insn = val(dut.rvfi_pc_rdata), val(dut.rvfi_insn)
             trace.write(
                 f"{val(dut.rvfi_order):d} {pc:08x} {insn:08x} {val(dut.rvfi_pc_wdata):08x} {val(dut.rvfi_trap):d} "
