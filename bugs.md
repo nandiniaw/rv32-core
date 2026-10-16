@@ -49,3 +49,15 @@
 ### MUT-009: word access at offset 1 not flagged misaligned (check looks only at addr bit 1)
 - Injected: rtl/lsu.sv (scripts/mutations.sh). Caught by: test_store_lanes_and_resulting_memory and test_load_selection_and_extension.
 - Injected, not found.
+
+### CMUT-001: core byte load sign-extends from bit 6 instead of bit 7
+- Injected: rtl/lsu.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/ls_edge.elf (rd write mismatch).
+- Injected, not found.
+
+### CMUT-002: JAL/JALR link value is pc+8 instead of pc+4
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/rv32ui/jal.elf (rd write mismatch).
+- Injected, not found.
+
+### CMUT-003: half-word store lane mask swapped between low and high half
+- Injected: rtl/lsu.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/rv32ui/sh.elf (store mismatch).
+- Injected, not found.

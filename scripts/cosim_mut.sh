@@ -8,4 +8,4 @@ sed -i "$2" "/tmp/rtl_mut/$1"
 if diff -q "rtl/$1" "/tmp/rtl_mut/$1" > /dev/null; then echo "MUTANT: mutation did not apply"; exit 2; fi
 export MAKE_ARGS="RTL=/tmp/rtl_mut SIM_BUILD=sim_build_mut"
 ./scripts/cosim_elf.sh "$3"; rc=$?
-if [ $rc -ne 0 ]; then echo "MUTANT CAUGHT"; exit 0; else echo "MUTANT NOT CAUGHT"; exit 1; fi
+if [ $rc -ne 0 ] && grep -q MISMATCH "/tmp/$(basename "$3").cmp.out"; then echo "MUTANT CAUGHT"; exit 0; else echo "MUTANT NOT CAUGHT"; exit 1; fi
