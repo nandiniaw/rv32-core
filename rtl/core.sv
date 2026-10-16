@@ -5,7 +5,7 @@
 // branch/jump resolved in EX (younger instructions squashed).
 // Traps are still the Phase 2 placeholder: a trapping instruction retires once with trap = halt = 1,
 // has no architectural effect, younger instructions are squashed, and nothing retires afterwards.
-module core import rv32_pkg::*; #(
+module core #(
     parameter logic [31:0] RESET_PC = 32'h8000_0000
 ) (
     input  logic        clk,
@@ -38,6 +38,7 @@ module core import rv32_pkg::*; #(
     output logic [31:0] rvfi_mem_rdata,
     output logic [31:0] rvfi_mem_wdata
 );
+    import rv32_pkg::*;
     // ---------------- pipeline state ----------------
     logic [31:0] pc;
     logic        fetch_stop, halted;

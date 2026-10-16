@@ -1,9 +1,10 @@
-module alu import rv32_pkg::*; (
+module alu (
     input  logic [31:0] a,
     input  logic [31:0] b,
     input  logic [3:0]  op,
     output logic [31:0] result
 );
+    import rv32_pkg::*;
     logic [4:0] shamt;
     assign shamt = b[4:0];
 

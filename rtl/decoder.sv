@@ -1,7 +1,7 @@
 // decoder: RV32I base-ISA instruction decoder (combinational).
 // FENCE, ECALL, EBREAK and CSR instructions are illegal for now (Phase 4 adds them).
 // When illegal is set, every side-effect output is forced to 0.
-module decoder import rv32_pkg::*; (
+module decoder (
     input  logic [6:0] opcode,
     input  logic [2:0] funct3,
     input  logic [6:0] funct7,
@@ -18,6 +18,7 @@ module decoder import rv32_pkg::*; (
     output logic       is_jalr,
     output logic       illegal
 );
+    import rv32_pkg::*;
     logic f7_zero, f7_alt;
     assign f7_zero = (funct7 == 7'b0000000);
     assign f7_alt  = (funct7 == 7'b0100000);

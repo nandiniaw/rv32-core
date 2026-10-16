@@ -1,12 +1,13 @@
 // imm_gen: RV32I immediate generator (combinational).
 // imm_type selects the instruction format (constants in rv32_pkg). Values 5..7 are unused and give 0.
-module imm_gen import rv32_pkg::*; (
+module imm_gen (
     /* verilator lint_off UNUSEDSIGNAL */
     input  logic [31:0] insn,      // bits [6:0] (opcode) are not used here
     /* verilator lint_on UNUSEDSIGNAL */
     input  logic [2:0]  imm_type,
     output logic [31:0] imm
 );
+    import rv32_pkg::*;
     always_comb begin
         case (imm_type)
             IMM_I:   imm = {{20{insn[31]}}, insn[31:20]};
