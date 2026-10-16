@@ -61,3 +61,39 @@
 ### CMUT-003: half-word store lane mask swapped between low and high half
 - Injected: rtl/lsu.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/rv32ui/sh.elf (store mismatch).
 - Injected, not found.
+
+### CMUT-004: MEM->EX forwarding disabled for rs1
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 41 of 41 ELFs (run via cosim_mut_all.sh).
+- Injected, not found.
+
+### CMUT-005: WB->EX forwarding disabled for rs2
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 10 of 41 ELFs (and, ld_st, sb, sh, sll, sra, srl, sw, xor, ls_edge).
+- Injected, not found.
+
+### CMUT-006: load-use stall disabled
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 6 of 41 ELFs (load tests only).
+- Injected, not found.
+
+### CMUT-007: WB->ID register-file bypass disabled for rs1
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 34 of 41 ELFs.
+- Injected, not found.
+
+### CMUT-008: instruction in ID not squashed on a taken branch/jump
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 39 of 41 ELFs.
+- Injected, not found.
+
+### CMUT-009: store data not forwarded (uses the value read in ID)
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on 6 of 41 ELFs (ld_st, sb, sh, st_ld, sw, ls_edge).
+- Injected, not found.
+
+### CMUT-010: MEM->EX forwarding to rs2 also forwards writes to x0
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.
+
+### CMUT-011: older writer (WB) wins over younger writer (MEM) when both match rs1
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.
+
+### CMUT-012: load-use stall ignores rs2
+- Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
+- Injected, not found.

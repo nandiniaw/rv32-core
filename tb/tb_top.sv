@@ -51,6 +51,10 @@ module tb_top #(
     assign d_ok  = (d_off < MEM_BYTES);
     assign i_idx = i_off[AW+1:2];
     assign d_idx = d_off[AW+1:2];
+    // mem_oob is judged on the retiring instruction (RVFI), not on the current fetch/data address.
+    logic [31:0] r_pc_off, r_d_off;
+    assign r_pc_off = rvfi_pc_rdata - BASE;
+    assign r_d_off  = rvfi_mem_addr - BASE;
 
     assign imem_rdata = i_ok ? mem[i_idx] : 32'd0;
     assign dmem_rdata = d_ok ? mem[d_idx] : 32'd0;
@@ -66,7 +70,7 @@ module tb_top #(
 
     always_ff @(posedge clk) begin
         if (rst) mem_oob <= 1'b0;
-        else if (rvfi_valid && (!i_ok || (((rvfi_mem_rmask != 4'd0) || (rvfi_mem_wmask != 4'd0)) && !d_ok)))
+        else if (rvfi_valid && (!(r_pc_off < MEM_BYTES) || (((rvfi_mem_rmask != 4'd0) || (rvfi_mem_wmask != 4'd0)) && !(r_d_off < MEM_BYTES))))
             mem_oob <= 1'b1;
     end
 
