@@ -18,3 +18,6 @@ Pygments==2.21.0
 pytest==9.1.1
 riscv-arch-test: branch act4, commit 7f7d735
 ACT4 tooling via mise: Ruby 3.4.11, uv 0.12.23, Bundler 4.0.22
+OSS CAD Suite 2026-10-16 (oss-cad-suite-linux-x64-20261016.tgz), installed at ~/oss-cad-suite, used only via: source ~/oss-cad-suite/environment
+Yosys 0.70+145 (git sha1 a31d95ea0)
+riscv-formal c992aa61fdfe0846c5ed90324c596202a1c69b76 (~/riscv-formal)
