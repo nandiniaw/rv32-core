@@ -15,7 +15,7 @@ Phase 3 complete (5-stage pipeline: WB->ID bypass, EX forwarding from MEM/WB, on
 - Memory is ideal: combinational instruction and data reads, so there is no memory wait state. A real SRAM or cache interface is not modelled.
 - The load-use stall is conservative (it matches rs1/rs2 instruction fields even when the instruction does not use them), so some stalls are unnecessary. Correctness is not affected.
 - Traps are a placeholder: a trapping instruction retires once with trap/halt set and the core stops; the cosim rejects traps.
-- Cosim covers only what rv32ui and ls_edge exercise: traps, CSR activity and misaligned accesses are rejected or unmodelled by the comparator. Only 3 core-level mutants so far; the last instruction's next pc is not checked.
+- Cosim covers only what rv32ui, ls_edge and haz exercise: traps, CSR activity and misaligned accesses are rejected or unmodelled by the comparator. 12 core-level mutants so far; the last instruction's next pc is not checked. No coverage percentages are measured.
 
 ## Reproduce
 `./scripts/versions.sh`, `./scripts/regress.sh`, `./scripts/unit.sh`. Versions are in `versions.txt`.
