@@ -8,6 +8,7 @@ repo="$(cd "$here/.." && pwd)"
 rf="${RISCV_FORMAL:-$HOME/riscv-formal}"
 cfg="${1:?usage: run.sh <cfg-name> [jobs]}"
 jobs="${2:-2}"
+expect="${3:-}"
 core="$rf/cores/rv32core"
 rtl="${RTL_DIR:-$repo/rtl}"
 mkdir -p "$core" "$repo/logs"
@@ -21,6 +22,11 @@ cp "$here/$cfg.cfg" "$core/$cfg.cfg"
   && python3 ../../checks/genchecks.py "$cfg" && make -C "$cfg" -j"$jobs" ) 2>&1 | tee "$repo/logs/formal_$cfg.log"
 rc=${PIPESTATUS[0]}
 echo "formal $cfg exit: $rc"
+if [ -n "$expect" ]; then
+  got=$(ls -d "$core/$cfg"/*/ 2>/dev/null | wc -l)
+  echo "EXPECT $expect checks, found $got"
+  [ "$got" = "$expect" ] || { echo "CHECK COUNT MISMATCH"; rc=5; }
+fi
 echo "--- status files (if sby wrote them) ---"
 for d in "$core/$cfg"/*/; do
   [ -f "$d/status" ] && echo "$(basename "$d"): $(head -n 1 "$d/status")"
