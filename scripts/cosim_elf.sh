@@ -7,7 +7,7 @@ elf=${1:-}
 name=$(basename "$elf")
 rm -f "/tmp/$name.sail.trace" "/tmp/$name.core.trace" "/tmp/$name.cmp.out"
 sail_trace=/tmp/$name.sail.trace
-timeout 60 sail_riscv_sim --rv32 --trace --trace-output "$sail_trace" "$elf" > "/tmp/$name.sail.out" 2>&1
+timeout 60 sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json --trace --trace-output "$sail_trace" "$elf" > "/tmp/$name.sail.out" 2>&1
 sail_rc=$?
 ./scripts/run_core_elf.sh "$elf" > "/tmp/$name.core.out" 2>&1
 core_rc=$?

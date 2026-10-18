@@ -16,7 +16,7 @@ for src in "$RT"/isa/rv32ui/*.S; do
         "$src" -o "$elf" > logs/rv32ui/$t.build.log 2>&1; then
     echo "BUILD-FAIL  $t"; fail=$((fail+1)); continue
   fi
-  timeout 20 sail_riscv_sim --rv32 "$elf" > logs/rv32ui/$t.sail.log 2>&1; rc=$?
+  timeout 20 sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json "$elf" > logs/rv32ui/$t.sail.log 2>&1; rc=$?
   if [ $rc -eq 0 ] && grep -q SUCCESS logs/rv32ui/$t.sail.log; then
     echo "PASS  $t"; pass=$((pass+1))
   else

@@ -10,8 +10,8 @@ for t in pass fail ls_edge haz; do
   riscv64-unknown-elf-gcc -march=rv32i -mabi=ilp32 -nostdlib -nostartfiles \
     -T sw/link.ld sw/$t.S -o build/$t.elf || status=1
 done
-timeout 20 sail_riscv_sim --rv32 build/pass.elf > logs/sail_pass.log 2>&1; check "sail: pass.elf exits 0" $? 0
-timeout 20 sail_riscv_sim --rv32 build/fail.elf > logs/sail_fail.log 2>&1; check "sail: fail.elf exits 1 (harness detects failure)" $? 1
+timeout 20 sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json build/pass.elf > logs/sail_pass.log 2>&1; check "sail: pass.elf exits 0" $? 0
+timeout 20 sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json build/fail.elf > logs/sail_fail.log 2>&1; check "sail: fail.elf exits 1 (harness detects failure)" $? 1
 
 make -C smoke clean > /dev/null 2>&1
 make -C smoke > logs/smoke.log 2>&1; check "smoke: make exit status" $? 0
@@ -23,7 +23,8 @@ tail -n 1 logs/rv32ui_sail.log
 ./scripts/lint.sh > logs/lint.log 2>&1; check "lint (all modules)" $? 0
 ./scripts/mutations.sh > logs/mutations.log 2>&1; check "mutations all caught" $? 0
 
-timeout 20 sail_riscv_sim --rv32 build/ls_edge.elf > logs/sail_ls_edge.log 2>&1; check "sail: ls_edge.elf exits 0" $? 0
+timeout 20 sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json build/ls_edge.elf > logs/sail_ls_edge.log 2>&1; check "sail: ls_edge.elf exits 0" $? 0
+isa=$(sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.json --print-isa-string 2>&1); check "sail: M-only ISA string" "$isa" "rv32i_zicsr_zvl32b_zvl64b_zvl128b_zvl256b"
 ./scripts/cosim_rv32ui.sh > logs/cosim_rv32ui.log 2>&1; check "cosim: rv32ui, RTL vs Sail" $? 0
 ./scripts/cosim_elf.sh build/ls_edge.elf > logs/cosim_ls_edge.log 2>&1; check "cosim: ls_edge, RTL vs Sail" $? 0
 ./scripts/cosim_elf.sh build/haz.elf > logs/cosim_haz.log 2>&1; check "cosim: haz, RTL vs Sail" $? 0
