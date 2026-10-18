@@ -1,0 +1,141 @@
+    .section .text.init
+    .globl _start
+_start:
+    la   t0, handler
+    csrw mtvec, t0
+    j    body
+    .balign 4
+handler:
+    csrr t4, mepc
+    addi t4, t4, 4
+    csrw mepc, t4
+    mret
+body:
+    li   t0, 0x2
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0xB
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x80000003
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x1F
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x7FFFFFFF
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x0
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x4
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x6
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x3
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x0
+    csrw mcause, t0
+    csrr t1, mcause
+    li   t0, 0x80000011
+    csrw mtvec, t0
+    csrr t1, mtvec
+    li   t0, 0x80000013
+    csrw mtvec, t0
+    csrr t1, mtvec
+    li   t0, 0x80000002
+    csrw mtvec, t0
+    csrr t1, mtvec
+    li   t0, 0x80000007
+    csrw mtvec, t0
+    csrr t1, mtvec
+    li   t0, 0x80000040
+    csrw mtvec, t0
+    csrr t1, mtvec
+    li   t0, 0x8
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x80
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x800
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x1000
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x1800
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x20000
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x400000
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x6000
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x600
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x1
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x2
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x20
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x0
+    csrw mstatus, t0
+    csrr t1, mstatus
+    li   t0, 0x80000001
+    csrw mepc, t0
+    csrr t1, mepc
+    li   t0, 0x80000002
+    csrw mepc, t0
+    csrr t1, mepc
+    li   t0, 0x80000003
+    csrw mepc, t0
+    csrr t1, mepc
+    li   t0, 0x80000006
+    csrw mepc, t0
+    csrr t1, mepc
+    li   t0, 0x80000008
+    csrw mepc, t0
+    csrr t1, mepc
+    li   t0, 0x8
+    csrw mie, t0
+    csrr t1, mie
+    li   t0, 0x80
+    csrw mie, t0
+    csrr t1, mie
+    li   t0, 0x800
+    csrw mie, t0
+    csrr t1, mie
+    li   t0, 0x2
+    csrw mie, t0
+    csrr t1, mie
+    li   t0, 0x2000
+    csrw mie, t0
+    csrr t1, mie
+    li   t0, 0x0
+    csrw mie, t0
+    csrr t1, mie
+    la   t0, tohost
+    li   t1, 1
+    sw   t1, 0(t0)
+    sw   zero, 4(t0)
+1:  j    1b
+    .section .tohost, "aw", @progbits
+    .align 6
+    .globl tohost
+tohost:   .dword 0
+    .globl fromhost
+fromhost: .dword 0
