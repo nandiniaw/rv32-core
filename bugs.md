@@ -115,4 +115,4 @@ CAUGHT means at least one check reported FAIL.
 | CMUT-010 | all 37 insn checks + reg | 84 s |
 | CMUT-011 | reg | 58 s |
 | CMUT-012 | reg | 56 s |
-Counterexample traces were not inspected, so "caught for the intended reason" is not yet established.
+Counterexample inspected for CMUT-008 only (formal/vcd_table.py on pc_fwd_ch0/engine_0/trace.vcd): a taken bne (0xf70a94e3) at 0x80000014 retires with pc_wdata 0x7fffff7c, then the wrong-path sb (0x7d180823) at 0x80000018 (branch pc + 4) retires next, so pc_fwd fails. That is the intended failure: the instruction behind a taken branch is not squashed. The other 11 traces were not inspected.
