@@ -341,6 +341,13 @@
   }
  },
  "memory": {
-  "physaddr_bits": 32
+  "physaddr_bits": 32,
+  "misaligned": {
+   "exceptions": {
+    "load_store": {
+     "Some": "AlignmentException"
+    }
+   }
+  }
  }
 }
