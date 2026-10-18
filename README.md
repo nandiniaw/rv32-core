@@ -19,3 +19,14 @@ Phase 3 complete (5-stage pipeline: WB->ID bypass, EX forwarding from MEM/WB, on
 
 ## Reproduce
 `./scripts/versions.sh`, `./scripts/regress.sh`, `./scripts/unit.sh`. Versions are in `versions.txt`.
+
+## Formal verification (bounded)
+- Tools: riscv-formal @ c992aa6, Yosys 0.70+145 from OSS CAD Suite 2026-10-16, SymbiYosys with smtbmc/boolector.
+- Run: `./formal/run.sh full 3`. Config `formal/full.cfg`: isa rv32i, insn/ill depth 12, reg/pc_fwd/pc_bwd/causal 1 reset cycle then depth 15,
+  unique/liveness 1/8/15. 45 checks generated; all PASS, i.e. no counterexample within that bound (one run, 1m12s wall time).
+  This is bounded model checking, not an unbounded proof.
+- Deviation: Yosys's native frontend rejects SystemVerilog package imports, so formal runs on a derived copy of rtl/ with the package constants
+  inlined. `formal/check_derived.py` checks each derived file equals rtl/ apart from those constants.
+- Sensitivity: each of 12 deliberate core bugs (CMUT-001..012) makes at least one check FAIL (`formal/formal_mutations.sh`, about 14 minutes). See bugs.md.
+- Not covered: FENCE/ECALL/EBREAK (not among the 37 instruction checks; the decoder treats them as illegal until Phase 4), CSRs, memory ordering
+  (wrapper memory is free every cycle), real trap handling (placeholder), more than 1 reset cycle (pending), non-vacuity of individual checks (not established).

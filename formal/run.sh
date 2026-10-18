@@ -9,11 +9,12 @@ rf="${RISCV_FORMAL:-$HOME/riscv-formal}"
 cfg="${1:?usage: run.sh <cfg-name> [jobs]}"
 jobs="${2:-2}"
 core="$rf/cores/rv32core"
+rtl="${RTL_DIR:-$repo/rtl}"
 mkdir -p "$core" "$repo/logs"
 rm -rf "${core:?}/$cfg"
 rm -f "$core/rv32_pkg.sv"
-python3 "$here/inline_pkg.py" "$repo/rtl" "$core" || exit 3
-python3 "$here/check_derived.py" "$repo/rtl" "$core" || exit 4
+python3 "$here/inline_pkg.py" "$rtl" "$core" || exit 3
+python3 "$here/check_derived.py" "$rtl" "$core" || exit 4
 cp "$here/wrapper.sv" "$core/wrapper.sv"
 cp "$here/$cfg.cfg" "$core/$cfg.cfg"
 ( source "$HOME/oss-cad-suite/environment" && cd "$core" \

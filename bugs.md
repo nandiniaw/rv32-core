@@ -97,3 +97,22 @@
 ### CMUT-012: load-use stall ignores rs2
 - Injected: rtl/core.sv (scripts/core_mutations.sh). Caught by: cosim RTL vs Sail on build/haz.elf.
 - Injected, not found.
+
+## Formal sensitivity: core mutants through riscv-formal (injected, not found)
+Same patterns as scripts/core_mutations.sh, applied to a copy of rtl/ and run through formal/full.cfg (formal/formal_mutations.sh, 13m53s).
+CAUGHT means at least one check reported FAIL.
+| Mutant | Failing checks (formal) | Time |
+|---|---|---|
+| CMUT-001 | insn_lb | 78 s |
+| CMUT-002 | insn_jal, insn_jalr | 91 s |
+| CMUT-003 | insn_lh, insn_lhu, insn_sh | 83 s |
+| CMUT-004 | reg | 66 s |
+| CMUT-005 | reg | 60 s |
+| CMUT-006 | reg | 60 s |
+| CMUT-007 | reg | 61 s |
+| CMUT-008 | pc_fwd | 71 s |
+| CMUT-009 | 16 insn checks (alu register ops, branches) + reg | 65 s |
+| CMUT-010 | all 37 insn checks + reg | 84 s |
+| CMUT-011 | reg | 58 s |
+| CMUT-012 | reg | 56 s |
+Counterexample traces were not inspected, so "caught for the intended reason" is not yet established.
