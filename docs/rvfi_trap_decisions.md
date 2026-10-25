@@ -19,3 +19,8 @@ Source: riscv-formal docs/source/rvfi.rst and procedure.rst (clone at commit c99
 - O2: whether ecall/ebreak set rvfi_trap.
 - O3: CSR rdata/wdata/mask semantics (csrs.rst) for mstatus, mtvec, mepc, mcause, mtval, mscratch.
 - O4: how the instruction after mret is reported.
+
+## Decisions D4/D5 (project decisions)
+- D4: CSRs that Sail accepts but the core does not implement (PMP, counters, mhpm*, mstatush pending check) trap as illegal. Implemented set: mstatus 0x300, misa 0x301, mie 0x304, mtvec 0x305, mscratch 0x340, mepc 0x341, mcause 0x342, mtval 0x343, mip 0x344, ID CSRs 0xF11-0xF15. Enforcement: compare_trace.py fails with "unsupported CSR touched" when Sail logs a CSR access outside this set. mcycle/minstret (0xB00/0xB02) are deferred to the benchmark phase.
+- D5: no interrupts in Phase 4. mip reads the constant 0x80 (as Sail); test programs never enable mstatus.MIE together with a mie bit; the comparator will stop on an interrupt entry in Sail's trace (format not yet observed). Optional machine timer interrupt is a later stretch.
+- Open: mstatush (0x310) vs riscv-formal isa_mods; check when wiring the formal CSR checks.
