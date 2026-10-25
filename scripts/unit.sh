@@ -5,7 +5,7 @@ source .venv/bin/activate
 mkdir -p logs
 status=0
 cd tests/unit
-for top in regfile alu imm_gen decoder branch_cmp lsu; do
+for top in regfile alu imm_gen decoder branch_cmp lsu sys_decoder; do
   make clean > /dev/null 2>&1
   make TOP=$top > ../../logs/unit_$top.log 2>&1; rc=$?
   if [ $rc -eq 0 ] && grep -qE "TESTS=[0-9]+ PASS=[0-9]+ FAIL=0" ../../logs/unit_$top.log; then
