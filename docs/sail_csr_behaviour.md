@@ -17,3 +17,10 @@ Provenance: CERTAIN = read directly from a trace read; LIKELY = derived by linin
 ## Consequences
 - Phase 4 programs must not enable interrupts (mip.MTIP is pending in Sail).
 - CSRs in the accepted list that the core does not implement (PMP, counters, mhpm*) are out of scope: tests must not touch them.
+
+## mcause write rule and mstatush (measured, sw/probes/mcause_all.S: 138 values, each preceded by a write of 0xB)
+- Accepted exception codes: 0-9, 0xB, 0xC, 0xD, 0xF, 0x13. Rejected: 0xA, 0xE, 0x10-0x12, 0x14-0x3F, and every sampled value with bits above bit 5 set (0x40, 0x80, 0x100, 0x1000, 0x40000000, 0x7FFFFFFF, 0xFFFFFFFF).
+- Accepted interrupt codes (bit 31 set): 1, 3, 5, 7, 9, 0xB. Every other tested interrupt code was rejected.
+- A rejected write leaves mcause unchanged (117 rejected values all read back 0xB; none changed to another value). Not swept: all 2^32 values.
+- mstatush (0x310) reads 0 initially, after writing -1 and after writing 0.
+- Consistent with the Sail 0.15 source reading (legalize_cause) reported by the other agent; code 0x13 is accepted, matching privileged_isa_version Privileged_ISA_1_13 in config/config.json.in.
