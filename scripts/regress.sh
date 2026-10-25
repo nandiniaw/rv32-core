@@ -31,5 +31,14 @@ isa=$(sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.
 if ./scripts/run_core_elf.sh build/fail.elf > logs/core_fail.log 2>&1; then check "core: fail.elf is rejected" accepted rejected; else check "core: fail.elf is rejected" rejected rejected; fi
 ./scripts/core_mutations.sh > logs/core_mutations.log 2>&1; check "core mutants all caught by cosim" $? 0
 
+# Phase 4 probes: expected to FAIL with a MISMATCH (XFAIL) until the feature exists; XPASS = promote to a real check
+mkdir -p build/probes
+for p in sw/probes/*.S; do n=$(basename $p .S)
+  riscv64-unknown-elf-gcc -march=rv32i_zicsr -mabi=ilp32 -nostdlib -nostartfiles -T sw/link.ld $p -o build/probes/$n.elf || { echo "FAIL  probe build $n"; status=1; continue; }
+  if ./scripts/cosim_elf.sh build/probes/$n.elf > logs/probe_$n.log 2>&1; then echo "XPASS probe $n (promote to a real check)"; status=1
+  elif grep -q MISMATCH /tmp/$n.elf.cmp.out 2>/dev/null; then echo "XFAIL probe $n"
+  else echo "FAIL  probe $n failed without a MISMATCH (see logs/probe_$n.log)"; status=1; fi
+done
+
 [ $status -eq 0 ] && echo "ALL PASS" || echo "REGRESSION FAILED"
 exit $status
