@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""compare_trace.py <rtl.trace> <sail.trace>
+"""compare_trace.py <rtl.trace> <sail.trace>   (RTL trace format v2, 20 fields)
 
-Compares the RTL retire trace (written by tests/system/test_core_elf.py) with Sail's text trace
-(sail_riscv_sim --trace). Per instruction it checks: pc, instruction word, next pc, rd write,
-load and store (byte address, size, data). CSR activity in Sail's trace is reported as unsupported.
+RTL fields: order pc insn npc trap rd rdv maddr rm wm rdata wdata intr mstatus mie mtvec mscratch mepc mcause mtval
+(the last 7 are the CSR values AFTER the retired instruction).
+Per instruction it checks: pc, insn, next pc, trap flag (both directions), intr flag, rd write, load and store
+(byte address, size, data), and the 7 tracked CSRs against a state table built from Sail's "CSR x <- v" lines.
+A Sail CSR access outside the implemented set is reported as "unsupported CSR touched".
 Exit 0 only if every instruction matches and both traces have the same length.
 """
 import re
@@ -14,7 +16,14 @@ INSN = re.compile(r"^\[(\d+)\] \[(\w)\]: 0x([0-9A-Fa-f]+) \(0x([0-9A-Fa-f]+)\)\s
 XWR = re.compile(r"^x(\d+) <- 0x([0-9A-Fa-f]+)\s*$")
 LOAD = re.compile(r"^mem\[R,0x([0-9A-Fa-f]+)\] -> 0x([0-9A-Fa-f]+)\s*$")
 STORE = re.compile(r"^mem\[W,0x([0-9A-Fa-f]+)\] <- 0x([0-9A-Fa-f]+)\s*$")
-IGNORED = re.compile(r"^(mem\[X,|htif)")
+CSRL = re.compile(r"^CSR (\w+) \(0x([0-9A-Fa-f]+)\) (<-|->) 0x([0-9A-Fa-f]+)\s*$")
+EXC = re.compile(r"^handling exc#(\S+)")
+IGNORED = re.compile(r"^(mem\[X,|htif|trapping from |ret-ing from )")
+SKIP_CSR = {"mstatush", "mtval2", "mtinst"}
+IMPLEMENTED = {0x300, 0x301, 0x304, 0x305, 0x340, 0x341, 0x342, 0x343, 0x344, 0xF11, 0xF12, 0xF13, 0xF14, 0xF15}
+TRACKED = [("mstatus", 0x300), ("mie", 0x304), ("mtvec", 0x305), ("mscratch", 0x340),
+           ("mepc", 0x341), ("mcause", 0x342), ("mtval", 0x343)]
+NFIELDS = 13 + len(TRACKED)
 
 
 def parse_sail(path):
@@ -24,7 +33,8 @@ def parse_sail(path):
         m = INSN.match(line)
         if m:
             cur = {"n": int(m.group(1)), "pc": int(m.group(3), 16) & M32, "insn": int(m.group(4), 16),
-                   "text": " ".join(m.group(5).split()), "wr": [], "loads": [], "stores": [], "csr": []}
+                   "text": " ".join(m.group(5).split()), "wr": [], "loads": [], "stores": [], "csr": [],
+                   "exc": None}
             recs.append(cur)
             continue
         if cur is None or not line.strip():
@@ -41,8 +51,13 @@ def parse_sail(path):
         if m:
             cur["stores"].append((int(m.group(1), 16) & M32, len(m.group(2)) // 2, int(m.group(2), 16)))
             continue
-        if line.startswith("CSR "):
-            cur["csr"].append(line.strip())
+        m = CSRL.match(line)
+        if m:
+            cur["csr"].append((m.group(1), int(m.group(2), 16), m.group(3), int(m.group(4), 16) & M32))
+            continue
+        m = EXC.match(line)
+        if m:
+            cur["exc"] = m.group(1)
             continue
         if not IGNORED.match(line):
             unknown.append(line.strip())
@@ -53,11 +68,12 @@ def parse_rtl(path):
     recs = []
     for raw in open(path):
         p = raw.split()
-        if len(p) != 12:
-            sys.exit(f"bad RTL trace line (expected 12 fields): {raw!r}")
+        if len(p) != NFIELDS:
+            sys.exit(f"bad RTL trace line (expected {NFIELDS} fields): {raw!r}")
         recs.append({"order": int(p[0]), "pc": int(p[1], 16), "insn": int(p[2], 16), "npc": int(p[3], 16),
                      "trap": int(p[4]), "rd": int(p[5], 10), "rdv": int(p[6], 16), "maddr": int(p[7], 16),
-                     "rm": int(p[8], 16), "wm": int(p[9], 16), "rdata": int(p[10], 16), "wdata": int(p[11], 16)})
+                     "rm": int(p[8], 16), "wm": int(p[9], 16), "rdata": int(p[10], 16), "wdata": int(p[11], 16),
+                     "intr": int(p[12]), "csr": [int(x, 16) for x in p[13:]]})
     return recs
 
 
@@ -78,15 +94,27 @@ def hx(item):
 
 def compare(rtl, sail):
     base = sail[0]["n"] if sail else 0
+    state = {a: 0 for _, a in TRACKED}  # Sail reset values: all 0 (csr_init probe)
     for i in range(min(len(rtl), len(sail))):
         r, s = rtl[i], sail[i]
         errs = []
+        for name, addr, d, val in s["csr"]:
+            if name in SKIP_CSR:
+                continue
+            if addr not in IMPLEMENTED:
+                errs.append(f"unsupported CSR touched: {name} (0x{addr:03x})")
+            elif d == "<-" and addr in state:
+                state[addr] = val
         if r["order"] != i:
             errs.append(f"rvfi_order {r['order']} != {i}")
         if s["n"] - base != i:
             errs.append(f"Sail instruction counter {s['n']} not consecutive")
-        if r["trap"]:
-            errs.append("RTL reported a trap (traps are not modelled in Phase 2)")
+        want_trap = 1 if s["exc"] else 0
+        if r["trap"] != want_trap:
+            errs.append(f"trap: RTL {r['trap']} vs Sail {want_trap} ({s['exc'] or 'no exception'})")
+        want_intr = 1 if i > 0 and sail[i - 1]["exc"] else 0
+        if r["intr"] != want_intr:
+            errs.append(f"intr: RTL {r['intr']} vs expected {want_intr}")
         if r["pc"] != s["pc"]:
             errs.append(f"pc: RTL 0x{r['pc']:08x} vs Sail 0x{s['pc']:08x}")
         if r["insn"] != s["insn"]:
@@ -106,13 +134,15 @@ def compare(rtl, sail):
             errs.append(f"load: RTL {[hx(x) for x in rl]} vs Sail {[hx(x) for x in s['loads']]}")
         if rs != s["stores"]:
             errs.append(f"store: RTL {[hx(x) for x in rs]} vs Sail {[hx(x) for x in s['stores']]}")
-        if s["csr"]:
-            errs.append(f"Sail logged CSR activity (not modelled yet): {s['csr'][0]}")
+        for k, (name, addr) in enumerate(TRACKED):
+            if r["csr"][k] != state[addr]:
+                errs.append(f"csr {name}: RTL 0x{r['csr'][k]:08x} vs Sail 0x{state[addr]:08x}")
         if errs:
             print(f"MISMATCH at instruction {i}")
             print(f"  Sail: [{s['n']}] 0x{s['pc']:08x} (0x{s['insn']:08x}) {s['text']}")
             print(f"  RTL : order={r['order']} pc=0x{r['pc']:08x} insn=0x{r['insn']:08x} npc=0x{r['npc']:08x} "
-                  f"rd=x{r['rd']} rdv=0x{r['rdv']:08x} mem=0x{r['maddr']:08x} rm={r['rm']:x} wm={r['wm']:x}")
+                  f"trap={r['trap']} intr={r['intr']} rd=x{r['rd']} rdv=0x{r['rdv']:08x} "
+                  f"mem=0x{r['maddr']:08x} rm={r['rm']:x} wm={r['wm']:x}")
             for e in errs:
                 print("  - " + e)
             return False
@@ -134,7 +164,7 @@ def main():
     if unknown:
         print(f"note: {len(unknown)} unrecognised Sail line(s) ignored; first: {unknown[0]!r}")
     if ok:
-        print(f"COMPARE PASS: {len(rtl)} instructions match (pc, insn, next pc, rd, loads, stores)")
+        print(f"COMPARE PASS: {len(rtl)} instructions match (pc, insn, next pc, trap, intr, rd, loads, stores, 7 CSRs)")
     sys.exit(0 if ok else 1)
 
 
