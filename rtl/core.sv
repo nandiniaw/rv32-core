@@ -36,7 +36,15 @@ module core #(
     output logic [3:0]  rvfi_mem_rmask,
     output logic [3:0]  rvfi_mem_wmask,
     output logic [31:0] rvfi_mem_rdata,
-    output logic [31:0] rvfi_mem_wdata
+    output logic [31:0] rvfi_mem_wdata,
+    // STUB: CSR snapshot after the retired instruction (trace format v2); constant 0 until the CSR file exists
+    output logic [31:0] snap_mstatus,
+    output logic [31:0] snap_mie,
+    output logic [31:0] snap_mtvec,
+    output logic [31:0] snap_mscratch,
+    output logic [31:0] snap_mepc,
+    output logic [31:0] snap_mcause,
+    output logic [31:0] snap_mtval
 );
     import rv32_pkg::*;
     // ---------------- pipeline state ----------------
@@ -261,6 +269,13 @@ module core #(
     assign rvfi_halt      = wb_trap;
     assign rvfi_intr      = 1'b0;
     assign rvfi_mode      = 2'd3;
+    assign snap_mstatus = 32'd0;  // STUB
+    assign snap_mie = 32'd0;  // STUB
+    assign snap_mtvec = 32'd0;  // STUB
+    assign snap_mscratch = 32'd0;  // STUB
+    assign snap_mepc = 32'd0;  // STUB
+    assign snap_mcause = 32'd0;  // STUB
+    assign snap_mtval = 32'd0;  // STUB
     assign rvfi_ixl       = 2'd1;
     assign rvfi_rs1_addr  = wb_insn[19:15];
     assign rvfi_rs2_addr  = wb_insn[24:20];

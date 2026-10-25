@@ -28,6 +28,13 @@ module tb_top #(
     output logic [3:0]  rvfi_mem_wmask,
     output logic [31:0] rvfi_mem_rdata,
     output logic [31:0] rvfi_mem_wdata,
+    output logic [31:0] snap_mstatus,
+    output logic [31:0] snap_mie,
+    output logic [31:0] snap_mtvec,
+    output logic [31:0] snap_mscratch,
+    output logic [31:0] snap_mepc,
+    output logic [31:0] snap_mcause,
+    output logic [31:0] snap_mtval,
     output logic        mem_oob
 );
     localparam logic [31:0] BASE  = 32'h8000_0000;
@@ -92,6 +99,7 @@ module tb_top #(
         .rvfi_rd_addr(rvfi_rd_addr), .rvfi_rd_wdata(rvfi_rd_wdata),
         .rvfi_pc_rdata(rvfi_pc_rdata), .rvfi_pc_wdata(rvfi_pc_wdata),
         .rvfi_mem_addr(rvfi_mem_addr), .rvfi_mem_rmask(rvfi_mem_rmask), .rvfi_mem_wmask(rvfi_mem_wmask),
-        .rvfi_mem_rdata(rvfi_mem_rdata), .rvfi_mem_wdata(rvfi_mem_wdata)
+        .rvfi_mem_rdata(rvfi_mem_rdata), .rvfi_mem_wdata(rvfi_mem_wdata),
+        .snap_mstatus(snap_mstatus), .snap_mie(snap_mie), .snap_mtvec(snap_mtvec), .snap_mscratch(snap_mscratch), .snap_mepc(snap_mepc), .snap_mcause(snap_mcause), .snap_mtval(snap_mtval)
     );
 endmodule

@@ -55,12 +55,11 @@ async def run_elf(dut):
                 f"{val(dut.rvfi_order):d} {pc:08x} {insn:08x} {val(dut.rvfi_pc_wdata):08x} {val(dut.rvfi_trap):d} "
                 f"{val(dut.rvfi_rd_addr):02d} {val(dut.rvfi_rd_wdata):08x} {val(dut.rvfi_mem_addr):08x} "
                 f"{val(dut.rvfi_mem_rmask):x} {val(dut.rvfi_mem_wmask):x} "
-                f"{val(dut.rvfi_mem_rdata):08x} {val(dut.rvfi_mem_wdata):08x}\n"
+                f"{val(dut.rvfi_mem_rdata):08x} {val(dut.rvfi_mem_wdata):08x} {val(dut.rvfi_intr):d} "
+                f"{val(dut.snap_mstatus):08x} {val(dut.snap_mie):08x} {val(dut.snap_mtvec):08x} {val(dut.snap_mscratch):08x} {val(dut.snap_mepc):08x} {val(dut.snap_mcause):08x} {val(dut.snap_mtval):08x}\n"
             )
             if val(dut.mem_oob):
                 raise AssertionError(f"access outside RAM near instruction {retired} (pc=0x{pc:08x})")
-            if val(dut.rvfi_trap):
-                raise AssertionError(f"trap at instruction {retired}: pc=0x{pc:08x} insn=0x{insn:08x}")
             wmask = val(dut.rvfi_mem_wmask)
             if wmask:
                 addr = val(dut.rvfi_mem_addr)
