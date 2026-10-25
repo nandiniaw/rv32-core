@@ -71,6 +71,12 @@ prog = list(PROG)
 prog[3] = (0x8000000C, 0x3A029073, "csrrw x0, pmpcfg0, x5", ["CSR pmpcfg0 (0x3A0) <- 0x00000000"])
 cases.append(("CSR outside implemented set", good_rows(), prog, 1, ["MISMATCH", "unsupported CSR touched"]))
 
+ROW6 = [0x80000044, 0x310023F3, 0x80000048, 0, 7, 0, 0, C4]
+PROG6 = PROG + [(0x80000044, 0x310023F3, "csrrs x7, mstatush, x0", ["CSR mstatush (0x310) -> 0x00000000", "x7 <- 0x00000000"])]
+cases.append(("mstatush read of 0 accepted", good_rows() + [list(ROW6)], PROG6, 0, ["COMPARE PASS"]))
+bad_row = list(ROW6); bad_row[5] = 5
+cases.append(("mstatush read returns nonzero", good_rows() + [bad_row], PROG6, 1, ["MISMATCH", "rd write"]))
+
 bad = 0
 for name, rows, prog, rc_want, needles in cases:
     rc, out = run(rows, prog)

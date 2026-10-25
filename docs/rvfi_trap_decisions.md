@@ -29,3 +29,8 @@ Source: riscv-formal docs/source/rvfi.rst and procedure.rst (clone at commit c99
 - D6 (trap rule): RTL trap = 1 iff Sail logged "handling exc#" on that instruction, checked in both directions. After a trap the next retired instruction has intr = 1, all others intr = 0. The next pc after a trap equals the next Sail instruction pc. rvfi_halt = 0 once handlers run.
 - D7 (CSR checking): trace format v2 has 20 fields: order pc insn npc trap rd rdv maddr rm wm rdata wdata intr mstatus mie mtvec mscratch mepc mcause mtval. The last 7 are the CSR values AFTER the retired instruction. The comparator applies Sail's "CSR x <- v" lines (observed to log the stored, legalized value) to a state table and compares after every instruction. mstatush, mtval2 and mtinst lines are ignored. CSR reads are checked through rd.
 - Open: CSR write/read timing in the pipeline (all CSR access at WB, or stall csrr behind older CSR writes). RTL reset values must equal Sail's (measured with sw/probes/csr_init.S).
+
+## Decisions D8/D9 (project decisions)
+- D8: mcause is implemented with Sail's measured write rule (sw/probes/mcause_all.S, docs/sail_csr_behaviour.md). Accepted exception codes: 0-9, 0xB, 0xC, 0xD, 0xF, 0x13. Accepted interrupt codes (bit 31 set): 1, 3, 5, 7, 9, 0xB. Every other value is ignored and mcause keeps its old value. Only 138 values were swept, not all 2^32; the rest is inferred from legalize_cause in sail-riscv 0.15 (model/core/sys_regs.sail) and is a stated risk.
+- D9: mstatush (0x310) reads 0 and ignores writes (measured: 0 initially, after -1, after 0). The comparator already skips mstatush lines (SKIP_CSR); the RTL value is checked through rd.
+- D4 amendment: mstatush no longer traps. All other D4 items stand.

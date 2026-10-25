@@ -10,7 +10,7 @@ Provenance: CERTAIN = read directly from a trace read; LIKELY = derived by linin
 - Accepted csr addresses (everything else raises illegal-instruction): 0x300-0x301 0x304-0x305 0x310 0x320 0x323-0x344 0x3A0-0x3A3 0x3B0-0x3BF 0xB00 0xB02-0xB1F 0xB80 0xB82-0xB9F 0xF11-0xF15.
 
 ## LIKELY
-- mcause ignores writes of 0x1F, 0x7FFFFFFF and -1; accepts 0, 3, 4, 6, 0xB, 0x80000003.
+- mcause: SUPERSEDED by the measured section below (this early list only named the values tried first).
 - mtvec: base always written; a reserved mode (2 or 3) keeps the previous mode.
 - mepc bits 1:0 always 0. mstatus: only MIE and MPIE writable; MPP = 3 after the first write or trap, 0 at reset.
 

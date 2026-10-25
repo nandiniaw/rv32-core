@@ -31,6 +31,8 @@ isa=$(sail_riscv_sim --rv32 --config-override config/sail_rv32i_m_only_override.
 if ./scripts/run_core_elf.sh build/fail.elf > logs/core_fail.log 2>&1; then check "core: fail.elf is rejected" accepted rejected; else check "core: fail.elf is rejected" rejected rejected; fi
 ./scripts/core_mutations.sh > logs/core_mutations.log 2>&1; check "core mutants all caught by cosim" $? 0
 
+python3 scripts/test_compare_trace.py > logs/selftest_compare.log 2>&1; check "comparator self-test (v2)" $? 0
+
 # Phase 4 probes: expected to FAIL with a MISMATCH (XFAIL) until the feature exists; XPASS = promote to a real check
 mkdir -p build/probes
 for p in sw/probes/*.S; do n=$(basename $p .S)
