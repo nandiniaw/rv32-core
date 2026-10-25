@@ -18,6 +18,7 @@ LOAD = re.compile(r"^mem\[R,0x([0-9A-Fa-f]+)\] -> 0x([0-9A-Fa-f]+)\s*$")
 STORE = re.compile(r"^mem\[W,0x([0-9A-Fa-f]+)\] <- 0x([0-9A-Fa-f]+)\s*$")
 CSRL = re.compile(r"^CSR (\w+) \(0x([0-9A-Fa-f]+)\) (<-|->) 0x([0-9A-Fa-f]+)\s*$")
 EXC = re.compile(r"^handling exc#(\S+)")
+INTR = re.compile(r"^handling int#(\S+)")
 IGNORED = re.compile(r"^(mem\[X,|htif|trapping from |ret-ing from )")
 SKIP_CSR = {"mstatush", "mtval2", "mtinst"}
 IMPLEMENTED = {0x300, 0x301, 0x304, 0x305, 0x340, 0x341, 0x342, 0x343, 0x344, 0xF11, 0xF12, 0xF13, 0xF14, 0xF15}
@@ -34,7 +35,7 @@ def parse_sail(path):
         if m:
             cur = {"n": int(m.group(1)), "pc": int(m.group(3), 16) & M32, "insn": int(m.group(4), 16),
                    "text": " ".join(m.group(5).split()), "wr": [], "loads": [], "stores": [], "csr": [],
-                   "exc": None}
+                   "exc": None, "irq": None}
             recs.append(cur)
             continue
         if cur is None or not line.strip():
@@ -58,6 +59,10 @@ def parse_sail(path):
         m = EXC.match(line)
         if m:
             cur["exc"] = m.group(1)
+            continue
+        m = INTR.match(line)
+        if m:
+            cur["irq"] = m.group(1)
             continue
         if not IGNORED.match(line):
             unknown.append(line.strip())
@@ -109,6 +114,8 @@ def compare(rtl, sail):
             errs.append(f"rvfi_order {r['order']} != {i}")
         if s["n"] - base != i:
             errs.append(f"Sail instruction counter {s['n']} not consecutive")
+        if s["irq"]:
+            errs.append(f"interrupt entry in Sail trace (D5: programs must not take interrupts): {s['irq']}")
         want_trap = 1 if s["exc"] else 0
         if r["trap"] != want_trap:
             errs.append(f"trap: RTL {r['trap']} vs Sail {want_trap} ({s['exc'] or 'no exception'})")

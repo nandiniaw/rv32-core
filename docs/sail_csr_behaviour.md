@@ -24,3 +24,7 @@ Provenance: CERTAIN = read directly from a trace read; LIKELY = derived by linin
 - A rejected write leaves mcause unchanged (117 rejected values all read back 0xB; none changed to another value). Not swept: all 2^32 values.
 - mstatush (0x310) reads 0 initially, after writing -1 and after writing 0.
 - Consistent with the Sail 0.15 source reading (legalize_cause) reported by the other agent; code 0x13 is accepted, matching privileged_isa_version Privileged_ISA_1_13 in config/config.json.in.
+
+## Interrupt entry (observed, sw/probes csr_wr_basic first draft: mie=0x888 with mstatus.MIE=1)
+- Line: `handling int#machine-timer-interrupt at priv M | tval=... | tval2=... | tinst=...`, printed under the record of the instruction before the handler.
+- Then: mstatus 0x1888 -> 0x1880, mstatush, mcause <- 0x80000007, mtval <- 0, mepc <- 0x80000038. compare_trace.py now fails on any such line (D5 guard).

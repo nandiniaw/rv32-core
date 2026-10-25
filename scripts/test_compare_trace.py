@@ -77,6 +77,10 @@ cases.append(("mstatush read of 0 accepted", good_rows() + [list(ROW6)], PROG6, 
 bad_row = list(ROW6); bad_row[5] = 5
 cases.append(("mstatush read returns nonzero", good_rows() + [bad_row], PROG6, 1, ["MISMATCH", "rd write"]))
 
+progi = list(PROG)
+progi[1] = progi[1][:3] + (progi[1][3] + ["handling int#machine-timer-interrupt at priv M | tval=0x00000000 | tval2=0x00000000 | tinst=0x00000000"],)
+cases.append(("Sail takes an interrupt", good_rows(), progi, 1, ["MISMATCH", "interrupt"]))
+
 bad = 0
 for name, rows, prog, rc_want, needles in cases:
     rc, out = run(rows, prog)
