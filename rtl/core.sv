@@ -67,7 +67,7 @@ module core #(
     logic        wb_valid, wb_reg_we, wb_trap;
     logic [31:0] wb_pc, wb_insn, wb_rs1_val, wb_rs2_val, wb_value, wb_next_pc, wb_mem_addr, wb_mem_rdata, wb_mem_wdata;
     logic [3:0]  wb_rmask, wb_wmask;
-    logic intr_q, wb_take_trap, w_is_ecall, w_is_mret, wb_take_mret;
+    logic intr_q, wb_take_trap, w_is_ecall, w_is_ebreak, w_is_sys, w_is_mret, wb_take_mret;
     logic [31:0] trap_target;
     logic [31:0] wb_rd_value;   // wb_value, or the CSR read data when the instruction in WB is a CSR op
 
@@ -149,14 +149,16 @@ module core #(
     csr_file u_csr (
         .clk(clk), .rst(rst), .en(csr_en), .addr(wb_insn[31:20]), .op(wb_insn[13:12]), .src(csr_src),
         .do_write(w_csr_write), .rdata(csr_rdata), .illegal(w_unused[5]),
-        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause(32'd11), .trap_tval(32'd0),
+        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause(w_is_ebreak ? 32'd3 : 32'd11), .trap_tval(w_is_ebreak ? wb_pc : 32'd0),
         .snap_mstatus(snap_mstatus), .snap_mie(snap_mie), .snap_mtvec(snap_mtvec), .snap_mscratch(snap_mscratch),
         .snap_mepc(snap_mepc), .snap_mcause(snap_mcause), .snap_mtval(snap_mtval)
     );
     assign wb_rd_value = w_is_csr ? csr_rdata : wb_value;
     // ecall: real trap taken at WB (step B, first trap type); other traps still use the halting placeholder
     assign w_is_ecall   = w_unused[1];
-    assign wb_take_trap = wb_valid && !halted && wb_trap && w_is_ecall;
+    assign w_is_ebreak  = w_unused[2];
+    assign w_is_sys     = w_is_ecall || w_is_ebreak;
+    assign wb_take_trap = wb_valid && !halted && wb_trap && w_is_sys;
     assign trap_target  = {snap_mtvec[31:2], 2'b00};
     assign w_is_mret    = w_unused[3];
     assign wb_take_mret = wb_valid && !halted && wb_trap && w_is_mret;
@@ -310,7 +312,7 @@ module core #(
             // retire counter
             if (wb_valid && !halted) begin
                 order <= order + 64'd1;
-                if (wb_trap && !w_is_ecall && !w_is_mret) halted <= 1'b1;
+                if (wb_trap && !w_is_sys && !w_is_mret) halted <= 1'b1;
             end
             if (wb_take_trap) begin pc <= trap_target; fetch_stop <= 1'b0; end
             if (wb_take_mret) begin pc <= snap_mepc; fetch_stop <= 1'b0; end
@@ -323,7 +325,7 @@ module core #(
     assign rvfi_order     = order;
     assign rvfi_insn      = wb_insn;
     assign rvfi_trap      = wb_trap && !w_is_mret;
-    assign rvfi_halt      = wb_trap && !w_is_ecall && !w_is_mret;
+    assign rvfi_halt      = wb_trap && !w_is_sys && !w_is_mret;
     assign rvfi_intr      = intr_q;
     assign rvfi_mode      = 2'd3;
     assign rvfi_ixl       = 2'd1;
@@ -334,7 +336,7 @@ module core #(
     assign rvfi_rd_addr   = (wb_reg_we && !wb_trap) ? wb_rd : 5'd0;
     assign rvfi_rd_wdata  = (rvfi_rd_addr == 5'd0) ? 32'd0 : wb_rd_value;
     assign rvfi_pc_rdata  = wb_pc;
-    assign rvfi_pc_wdata  = wb_trap ? (w_is_ecall ? trap_target : (w_is_mret ? snap_mepc : wb_pc)) : wb_next_pc;
+    assign rvfi_pc_wdata  = wb_trap ? (w_is_sys ? trap_target : (w_is_mret ? snap_mepc : wb_pc)) : wb_next_pc;
     assign rvfi_mem_addr  = wb_mem_addr;
     assign rvfi_mem_rmask = wb_rmask;
     assign rvfi_mem_wmask = wb_wmask;
