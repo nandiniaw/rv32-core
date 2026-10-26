@@ -34,3 +34,6 @@ Source: riscv-formal docs/source/rvfi.rst and procedure.rst (clone at commit c99
 - D8: mcause is implemented with Sail's measured write rule (sw/probes/mcause_all.S, docs/sail_csr_behaviour.md). Accepted exception codes: 0-9, 0xB, 0xC, 0xD, 0xF, 0x13. Accepted interrupt codes (bit 31 set): 1, 3, 5, 7, 9, 0xB. Every other value is ignored and mcause keeps its old value. Only 138 values were swept, not all 2^32; the rest is inferred from legalize_cause in sail-riscv 0.15 (model/core/sys_regs.sail) and is a stated risk.
 - D9: mstatush (0x310) reads 0 and ignores writes (measured: 0 initially, after -1, after 0). The comparator already skips mstatush lines (SKIP_CSR); the RTL value is checked through rd.
 - D4 amendment: mstatush no longer traps. All other D4 items stand.
+
+## Decision D10 (project decision)
+- D10: all CSR reads and writes execute at WB. A CSR result reaches the register file from WB, and a consumer of that result stalls while the CSR instruction is in EX or MEM (separate stall term next to load_use). The 7-CSR snapshot is therefore the state after the retiring instruction. Cost: a 2-cycle stall when a CSR result feeds the next instruction.
