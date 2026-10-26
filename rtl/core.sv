@@ -277,7 +277,7 @@ module core #(
                 ex_is_branch <= d_is_branch;
                 ex_is_jal    <= d_is_jal;
                 ex_is_jalr   <= d_is_jalr;
-                ex_illegal   <= d_illegal && !s_is_csr;
+                ex_illegal   <= d_illegal && !s_is_csr && !s_unused[6];
             end
             // EX -> MEM (an older trap in MEM squashes the instruction in EX)
             if (mem_trap) mem_valid <= 1'b0;
