@@ -37,6 +37,9 @@ python3 scripts/test_compare_trace.py > logs/selftest_compare.log 2>&1; check "c
 mkdir -p build/probes
 for p in sw/probes/*.S; do n=$(basename $p .S)
   riscv64-unknown-elf-gcc -march=rv32i_zicsr -mabi=ilp32 -nostdlib -nostartfiles -T sw/link.ld $p -o build/probes/$n.elf || { echo "FAIL  probe build $n"; status=1; continue; }
+  case " csr_init csr_rw2 csr_wr_basic mcause_all " in *" $n "*)
+    if ./scripts/cosim_elf.sh build/probes/$n.elf > logs/probe_$n.log 2>&1; then echo "PASS  probe $n (real check)"; else echo "FAIL  probe $n (real check)"; status=1; fi
+    continue;; esac
   if ./scripts/cosim_elf.sh build/probes/$n.elf > logs/probe_$n.log 2>&1; then echo "XPASS probe $n (promote to a real check)"; status=1
   elif grep -q MISMATCH /tmp/$n.elf.cmp.out 2>/dev/null; then echo "XFAIL probe $n"
   else echo "FAIL  probe $n failed without a MISMATCH (see logs/probe_$n.log)"; status=1; fi

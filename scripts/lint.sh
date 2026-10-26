@@ -12,6 +12,6 @@ lint lsu rtl/lsu.sv
 lint sys_decoder rtl/sys_decoder.sv
 lint csr_check rtl/csr_check.sv
 lint csr_file rtl/csr_check.sv rtl/csr_file.sv
-lint core rtl/rv32_pkg.sv rtl/alu.sv rtl/imm_gen.sv rtl/decoder.sv rtl/sys_decoder.sv rtl/branch_cmp.sv rtl/lsu.sv rtl/regfile.sv rtl/core.sv
-lint tb_top rtl/rv32_pkg.sv rtl/alu.sv rtl/imm_gen.sv rtl/decoder.sv rtl/sys_decoder.sv rtl/branch_cmp.sv rtl/lsu.sv rtl/regfile.sv rtl/core.sv tb/tb_top.sv
+lint core rtl/rv32_pkg.sv rtl/alu.sv rtl/imm_gen.sv rtl/decoder.sv rtl/sys_decoder.sv rtl/csr_check.sv rtl/csr_file.sv rtl/branch_cmp.sv rtl/lsu.sv rtl/regfile.sv rtl/core.sv
+lint tb_top rtl/rv32_pkg.sv rtl/alu.sv rtl/imm_gen.sv rtl/decoder.sv rtl/sys_decoder.sv rtl/csr_check.sv rtl/csr_file.sv rtl/branch_cmp.sv rtl/lsu.sv rtl/regfile.sv rtl/core.sv tb/tb_top.sv
 exit $status

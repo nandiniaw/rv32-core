@@ -1,7 +1,7 @@
 SIM ?= verilator
 TOPLEVEL_LANG ?= verilog
 RTL := $(CURDIR)/../../rtl
-VERILOG_SOURCES = $(RTL)/rv32_pkg.sv $(RTL)/alu.sv $(RTL)/imm_gen.sv $(RTL)/decoder.sv \
+VERILOG_SOURCES = $(RTL)/rv32_pkg.sv $(RTL)/alu.sv $(RTL)/imm_gen.sv $(RTL)/decoder.sv $(RTL)/sys_decoder.sv $(RTL)/csr_check.sv $(RTL)/csr_file.sv \
                   $(RTL)/branch_cmp.sv $(RTL)/lsu.sv $(RTL)/regfile.sv $(RTL)/core.sv \
                   $(CURDIR)/../../tb/tb_top.sv
 COCOTB_TOPLEVEL = tb_top

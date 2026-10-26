@@ -28,17 +28,12 @@ module csr_file (
 
     csr_check u_check (.addr(addr), .do_write(do_write), .illegal(illegal));
 
-    assign snap_mstatus  = {19'd0, {2{mpp_set}}, 3'd0, mpie_q, 3'd0, mie_q, 3'd0};
-    assign snap_mie      = mie_r;
-    assign snap_mtvec    = mtvec_r;
-    assign snap_mscratch = mscratch_r;
-    assign snap_mepc     = mepc_r;
-    assign snap_mcause   = mcause_r;
-    assign snap_mtval    = mtval_r;
+    logic [31:0] cur_mstatus;
+    assign cur_mstatus = {19'd0, {2{mpp_set}}, 3'd0, mpie_q, 3'd0, mie_q, 3'd0};
 
     always_comb begin
         case (addr)
-            A_MSTATUS: rdata = snap_mstatus;
+            A_MSTATUS: rdata = cur_mstatus;
             A_MISA:    rdata = 32'h4000_0100;
             A_MIE:     rdata = mie_r;
             A_MTVEC:   rdata = mtvec_r;
@@ -55,7 +50,7 @@ module csr_file (
     logic [31:0] cur, nxt;
     always_comb begin
         case (addr)
-            A_MSTATUS:  cur = snap_mstatus;
+            A_MSTATUS:  cur = cur_mstatus;
             A_MIE:      cur = mie_r;
             A_MTVEC:    cur = mtvec_r;
             A_MSCRATCH: cur = mscratch_r;
@@ -90,6 +85,27 @@ module csr_file (
             end
         end
     end
+
+    // snapshots show the state AFTER the instruction in WB (trace v2), so they use the next-state values
+    logic        wr_fire, n_mie_q, n_mpie_q, n_mpp_set;
+    logic [31:0] n_mie_r, n_mtvec_r, n_mscratch_r, n_mepc_r, n_mcause_r, n_mtval_r;
+    assign wr_fire = en && !illegal && do_write;
+    assign n_mie_q      = (wr_fire && addr == A_MSTATUS) ? nxt[3] : mie_q;
+    assign n_mpie_q     = (wr_fire && addr == A_MSTATUS) ? nxt[7] : mpie_q;
+    assign n_mpp_set    = (wr_fire && addr == A_MSTATUS) ? 1'b1   : mpp_set;
+    assign n_mie_r      = (wr_fire && addr == A_MIE)      ? (nxt & 32'h0000_0888) : mie_r;
+    assign n_mtvec_r    = (wr_fire && addr == A_MTVEC)    ? {nxt[31:2], (nxt[1] ? mtvec_r[1:0] : nxt[1:0])} : mtvec_r;
+    assign n_mscratch_r = (wr_fire && addr == A_MSCRATCH) ? nxt : mscratch_r;
+    assign n_mepc_r     = (wr_fire && addr == A_MEPC)     ? {nxt[31:2], 2'b00} : mepc_r;
+    assign n_mcause_r   = (wr_fire && addr == A_MCAUSE && cause_ok) ? nxt : mcause_r;
+    assign n_mtval_r    = (wr_fire && addr == A_MTVAL)    ? nxt : mtval_r;
+    assign snap_mstatus  = {19'd0, {2{n_mpp_set}}, 3'd0, n_mpie_q, 3'd0, n_mie_q, 3'd0};
+    assign snap_mie      = n_mie_r;
+    assign snap_mtvec    = n_mtvec_r;
+    assign snap_mscratch = n_mscratch_r;
+    assign snap_mepc     = n_mepc_r;
+    assign snap_mcause   = n_mcause_r;
+    assign snap_mtval    = n_mtval_r;
 
     always_ff @(posedge clk) begin
         if (rst) begin
