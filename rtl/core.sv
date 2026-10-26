@@ -147,6 +147,7 @@ module core #(
     csr_file u_csr (
         .clk(clk), .rst(rst), .en(csr_en), .addr(wb_insn[31:20]), .op(wb_insn[13:12]), .src(csr_src),
         .do_write(w_csr_write), .rdata(csr_rdata), .illegal(w_unused[5]),
+        .trap_en(1'b0), .trap_pc(32'd0), .trap_cause(32'd0), .trap_tval(32'd0),
         .snap_mstatus(snap_mstatus), .snap_mie(snap_mie), .snap_mtvec(snap_mtvec), .snap_mscratch(snap_mscratch),
         .snap_mepc(snap_mepc), .snap_mcause(snap_mcause), .snap_mtval(snap_mtval)
     );

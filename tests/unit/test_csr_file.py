@@ -133,3 +133,29 @@ async def test_illegal_accesses(dut):
     before = [int(getattr(dut, "snap_" + n).value) for n in SNAPS]
     await access(dut, 0x3A0, 1, 0xFFFFFFFF)              # illegal access must not write anything
     assert before == [int(getattr(dut, "snap_" + n).value) for n in SNAPS]
+
+
+async def trap(dut, pc, cause, tval):
+    dut.trap_en.value, dut.trap_pc.value, dut.trap_cause.value, dut.trap_tval.value = 1, pc, cause, tval
+    await Timer(1, "ns")
+    snap = {n: int(getattr(dut, "snap_" + n).value) for n in SNAPS}   # post-trap state, before the clock edge
+    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
+    dut.trap_en.value = 0
+    return snap
+
+
+@cocotb.test()
+async def test_trap_entry(dut):
+    await setup(dut)
+    dut.trap_en.value = 0
+    # MIE = 0 at reset: Sail ecall probe gives mstatus 0x1800
+    s = await trap(dut, 0x80000024, 0xB, 0)
+    assert s["mstatus"] == 0x1800 and s["mepc"] == 0x80000024 and s["mcause"] == 0xB and s["mtval"] == 0
+    assert await rd(dut, MEPC) == 0x80000024 and await rd(dut, MCAUSE) == 0xB
+    assert await rd(dut, MSTATUS) == 0x1800
+    # MIE = 1: MPIE <- 1, MIE <- 0, MPP = 3
+    await access(dut, MSTATUS, 2, 0x8)
+    s = await trap(dut, 0x80000100, 0x2, 0xFFFFFFFF)
+    assert s["mstatus"] == 0x1880 and s["mtval"] == 0xFFFFFFFF and s["mepc"] == 0x80000100
+    assert await rd(dut, MSTATUS) == 0x1880

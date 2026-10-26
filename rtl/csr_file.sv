@@ -9,6 +9,10 @@ module csr_file (
     input  logic [1:0]  op,
     input  logic [31:0] src,
     input  logic        do_write,
+    input  logic        trap_en,      // trap entry: overrides any CSR write
+    input  logic [31:0] trap_pc,
+    input  logic [31:0] trap_cause,
+    input  logic [31:0] trap_tval,
     output logic [31:0] rdata,
     output logic        illegal,
     output logic [31:0] snap_mstatus,
@@ -99,19 +103,23 @@ module csr_file (
     assign n_mepc_r     = (wr_fire && addr == A_MEPC)     ? {nxt[31:2], 2'b00} : mepc_r;
     assign n_mcause_r   = (wr_fire && addr == A_MCAUSE && cause_ok) ? nxt : mcause_r;
     assign n_mtval_r    = (wr_fire && addr == A_MTVAL)    ? nxt : mtval_r;
-    assign snap_mstatus  = {19'd0, {2{n_mpp_set}}, 3'd0, n_mpie_q, 3'd0, n_mie_q, 3'd0};
+    assign snap_mstatus  = trap_en ? {19'd0, 2'b11, 3'd0, mie_q, 3'd0, 1'b0, 3'd0}
+                                   : {19'd0, {2{n_mpp_set}}, 3'd0, n_mpie_q, 3'd0, n_mie_q, 3'd0};
     assign snap_mie      = n_mie_r;
     assign snap_mtvec    = n_mtvec_r;
     assign snap_mscratch = n_mscratch_r;
-    assign snap_mepc     = n_mepc_r;
-    assign snap_mcause   = n_mcause_r;
-    assign snap_mtval    = n_mtval_r;
+    assign snap_mepc     = trap_en ? (trap_pc & 32'hFFFF_FFFC) : n_mepc_r;
+    assign snap_mcause   = trap_en ? trap_cause : n_mcause_r;
+    assign snap_mtval    = trap_en ? trap_tval : n_mtval_r;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             mie_q <= 1'b0; mpie_q <= 1'b0; mpp_set <= 1'b0;
             mie_r <= 32'd0; mtvec_r <= 32'd0; mscratch_r <= 32'd0;
             mepc_r <= 32'd0; mcause_r <= 32'd0; mtval_r <= 32'd0;
+        end else if (trap_en) begin
+            mpie_q <= mie_q; mie_q <= 1'b0; mpp_set <= 1'b1;
+            mepc_r <= trap_pc & 32'hFFFF_FFFC; mcause_r <= trap_cause; mtval_r <= trap_tval;
         end else if (en && !illegal && do_write) begin
             case (addr)
                 A_MSTATUS: begin mie_q <= nxt[3]; mpie_q <= nxt[7]; mpp_set <= 1'b1; end
