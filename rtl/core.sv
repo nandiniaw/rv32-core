@@ -67,7 +67,9 @@ module core #(
     logic        wb_valid, wb_reg_we, wb_trap;
     logic [31:0] wb_pc, wb_insn, wb_rs1_val, wb_rs2_val, wb_value, wb_next_pc, wb_mem_addr, wb_mem_rdata, wb_mem_wdata;
     logic [3:0]  wb_rmask, wb_wmask;
-    logic wb_ill, mem_ill_q;
+    logic wb_ill, mem_ill_q, mem_jmis_q;
+    logic [3:0] wb_cause, mem_exc_cause;
+    logic [31:0] wb_tval, mem_exc_tval;
     logic intr_q, wb_take_trap, w_is_ecall, w_is_ebreak, w_is_sys, w_is_mret, wb_take_mret;
     logic [31:0] trap_target;
     logic [31:0] wb_rd_value;   // wb_value, or the CSR read data when the instruction in WB is a CSR op
@@ -151,7 +153,7 @@ module core #(
     csr_file u_csr (
         .clk(clk), .rst(rst), .en(csr_en), .addr(wb_insn[31:20]), .op(wb_insn[13:12]), .src(csr_src),
         .do_write(w_csr_write), .rdata(csr_rdata), .illegal(w_unused[5]),
-        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause((wb_trap && wb_ill) ? 32'd2 : (w_is_ebreak ? 32'd3 : 32'd11)), .trap_tval((wb_trap && wb_ill) ? wb_insn : (w_is_ebreak ? wb_pc : 32'd0)),
+        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause((wb_trap && wb_ill) ? {28'd0, wb_cause} : (w_is_ebreak ? 32'd3 : 32'd11)), .trap_tval((wb_trap && wb_ill) ? wb_tval : (w_is_ebreak ? wb_pc : 32'd0)),
         .snap_mstatus(snap_mstatus), .snap_mie(snap_mie), .snap_mtvec(snap_mtvec), .snap_mscratch(snap_mscratch),
         .snap_mepc(snap_mepc), .snap_mcause(snap_mcause), .snap_mtval(snap_mtval)
     );
@@ -218,6 +220,8 @@ module core #(
         .load_data(load_data), .misaligned(lsu_misaligned)
     );
     assign mem_trap   = mem_valid && (mem_trap_q || lsu_misaligned);
+    assign mem_exc_cause = mem_trap_q ? (mem_ill_q ? 4'd2 : 4'd0) : (mem_re ? 4'd4 : 4'd6);
+    assign mem_exc_tval  = mem_trap_q ? (mem_ill_q ? mem_insn : mem_next_pc) : mem_alu;
     assign dmem_addr  = {mem_alu[31:2], 2'b00};
     assign dmem_wdata = lsu_wdata;
     assign rmask_m    = (mem_valid && mem_re && !mem_trap) ? lsu_mask : 4'b0000;
@@ -296,6 +300,7 @@ module core #(
                 mem_we      <= ex_mem_we;
                 mem_trap_q  <= ex_trap;
                 mem_ill_q   <= ex_ill_real;
+                mem_jmis_q  <= jump_misaligned;
             end
             // MEM -> WB
             wb_valid     <= mem_valid;
@@ -307,7 +312,9 @@ module core #(
             wb_next_pc   <= mem_next_pc;
             wb_reg_we    <= mem_reg_we;
             wb_trap      <= mem_trap;
-            wb_ill       <= mem_ill_q;
+            wb_ill       <= mem_trap && (mem_ill_q || mem_jmis_q || lsu_misaligned);
+            wb_cause     <= mem_exc_cause;
+            wb_tval      <= mem_exc_tval;
             wb_mem_addr  <= dmem_addr;
             wb_mem_rdata <= dmem_rdata;
             wb_mem_wdata <= lsu_wdata;
