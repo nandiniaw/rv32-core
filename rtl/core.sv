@@ -67,6 +67,7 @@ module core #(
     logic        wb_valid, wb_reg_we, wb_trap;
     logic [31:0] wb_pc, wb_insn, wb_rs1_val, wb_rs2_val, wb_value, wb_next_pc, wb_mem_addr, wb_mem_rdata, wb_mem_wdata;
     logic [3:0]  wb_rmask, wb_wmask;
+    logic wb_ill, mem_ill_q;
     logic intr_q, wb_take_trap, w_is_ecall, w_is_ebreak, w_is_sys, w_is_mret, wb_take_mret;
     logic [31:0] trap_target;
     logic [31:0] wb_rd_value;   // wb_value, or the CSR read data when the instruction in WB is a CSR op
@@ -137,9 +138,10 @@ module core #(
         (mem_valid && m_is_csr && mem_rd != 5'd0 && (mem_rd == id_rs1 || mem_rd == id_rs2)));
 
     // illegal CSR access is detected in EX (shared rule with the CSR file)
-    logic csr_chk_illegal, csr_bad_ex;
+    logic csr_chk_illegal, csr_bad_ex, ex_ill_real;
     csr_check u_csr_chk (.addr(ex_insn[31:20]), .do_write(x_csr_write), .illegal(csr_chk_illegal));
     assign csr_bad_ex = x_is_csr && csr_chk_illegal;
+    assign ex_ill_real = (ex_illegal && !(x_unused[2] || x_unused[3] || x_unused[4] || x_unused[5])) || csr_bad_ex;
 
     // CSR op executes in WB
     logic        csr_en;
@@ -149,7 +151,7 @@ module core #(
     csr_file u_csr (
         .clk(clk), .rst(rst), .en(csr_en), .addr(wb_insn[31:20]), .op(wb_insn[13:12]), .src(csr_src),
         .do_write(w_csr_write), .rdata(csr_rdata), .illegal(w_unused[5]),
-        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause(w_is_ebreak ? 32'd3 : 32'd11), .trap_tval(w_is_ebreak ? wb_pc : 32'd0),
+        .mret_en(wb_take_mret), .trap_en(wb_take_trap), .trap_pc(wb_pc), .trap_cause((wb_trap && wb_ill) ? 32'd2 : (w_is_ebreak ? 32'd3 : 32'd11)), .trap_tval((wb_trap && wb_ill) ? wb_insn : (w_is_ebreak ? wb_pc : 32'd0)),
         .snap_mstatus(snap_mstatus), .snap_mie(snap_mie), .snap_mtvec(snap_mtvec), .snap_mscratch(snap_mscratch),
         .snap_mepc(snap_mepc), .snap_mcause(snap_mcause), .snap_mtval(snap_mtval)
     );
@@ -157,7 +159,7 @@ module core #(
     // ecall: real trap taken at WB (step B, first trap type); other traps still use the halting placeholder
     assign w_is_ecall   = w_unused[1];
     assign w_is_ebreak  = w_unused[2];
-    assign w_is_sys     = w_is_ecall || w_is_ebreak;
+    assign w_is_sys     = w_is_ecall || w_is_ebreak || (wb_trap && wb_ill);
     assign wb_take_trap = wb_valid && !halted && wb_trap && w_is_sys;
     assign trap_target  = {snap_mtvec[31:2], 2'b00};
     assign w_is_mret    = w_unused[3];
@@ -293,6 +295,7 @@ module core #(
                 mem_re      <= ex_mem_re;
                 mem_we      <= ex_mem_we;
                 mem_trap_q  <= ex_trap;
+                mem_ill_q   <= ex_ill_real;
             end
             // MEM -> WB
             wb_valid     <= mem_valid;
@@ -304,6 +307,7 @@ module core #(
             wb_next_pc   <= mem_next_pc;
             wb_reg_we    <= mem_reg_we;
             wb_trap      <= mem_trap;
+            wb_ill       <= mem_ill_q;
             wb_mem_addr  <= dmem_addr;
             wb_mem_rdata <= dmem_rdata;
             wb_mem_wdata <= lsu_wdata;
