@@ -20,21 +20,13 @@ module csr_file (
     output logic [31:0] snap_mtval
 );
     localparam logic [11:0] A_MSTATUS = 12'h300, A_MISA = 12'h301, A_MIE = 12'h304, A_MTVEC = 12'h305,
-                            A_MSTATUSH = 12'h310, A_MSCRATCH = 12'h340, A_MEPC = 12'h341,
+                            A_MSCRATCH = 12'h340, A_MEPC = 12'h341,
                             A_MCAUSE = 12'h342, A_MTVAL = 12'h343, A_MIP = 12'h344;
 
     logic        mie_q, mpie_q, mpp_set;
     logic [31:0] mie_r, mtvec_r, mscratch_r, mepc_r, mcause_r, mtval_r;
 
-    logic is_id, implemented;
-    assign is_id = (addr >= 12'hF11) && (addr <= 12'hF15);
-    always_comb begin
-        case (addr)
-            A_MSTATUS, A_MISA, A_MIE, A_MTVEC, A_MSTATUSH, A_MSCRATCH, A_MEPC, A_MCAUSE, A_MTVAL, A_MIP: implemented = 1'b1;
-            default: implemented = is_id;
-        endcase
-    end
-    assign illegal = !implemented || (is_id && do_write);
+    csr_check u_check (.addr(addr), .do_write(do_write), .illegal(illegal));
 
     assign snap_mstatus  = {19'd0, {2{mpp_set}}, 3'd0, mpie_q, 3'd0, mie_q, 3'd0};
     assign snap_mie      = mie_r;
