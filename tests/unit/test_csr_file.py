@@ -159,3 +159,23 @@ async def test_trap_entry(dut):
     s = await trap(dut, 0x80000100, 0x2, 0xFFFFFFFF)
     assert s["mstatus"] == 0x1880 and s["mtval"] == 0xFFFFFFFF and s["mepc"] == 0x80000100
     assert await rd(dut, MSTATUS) == 0x1880
+
+
+@cocotb.test()
+async def test_mret(dut):
+    await setup(dut)
+    dut.trap_en.value = 0
+    dut.mret_en.value = 0
+    await access(dut, MEPC, 1, 0x80000028)
+    await access(dut, MSTATUS, 2, 0x8)             # MIE = 1
+    await trap(dut, 0x80000024, 0xB, 0)            # MPIE <- 1, MIE <- 0
+    assert await rd(dut, MSTATUS) == 0x1880
+    await access(dut, MSTATUS, 3, 0x80)            # clear MPIE
+    assert await rd(dut, MSTATUS) == 0x1800
+    dut.mret_en.value = 1
+    await Timer(1, "ns")
+    assert int(dut.snap_mstatus.value) == 0x1880   # MIE <- MPIE (0), MPIE <- 1, MPP stays 3
+    await RisingEdge(dut.clk)
+    await FallingEdge(dut.clk)
+    dut.mret_en.value = 0
+    assert await rd(dut, MSTATUS) == 0x1880

@@ -9,6 +9,7 @@ module csr_file (
     input  logic [1:0]  op,
     input  logic [31:0] src,
     input  logic        do_write,
+    input  logic        mret_en,      // mret: MIE <- MPIE, MPIE <- 1, MPP stays
     input  logic        trap_en,      // trap entry: overrides any CSR write
     input  logic [31:0] trap_pc,
     input  logic [31:0] trap_cause,
@@ -104,6 +105,7 @@ module csr_file (
     assign n_mcause_r   = (wr_fire && addr == A_MCAUSE && cause_ok) ? nxt : mcause_r;
     assign n_mtval_r    = (wr_fire && addr == A_MTVAL)    ? nxt : mtval_r;
     assign snap_mstatus  = trap_en ? {19'd0, 2'b11, 3'd0, mie_q, 3'd0, 1'b0, 3'd0}
+                                   : mret_en ? {19'd0, {2{mpp_set}}, 3'd0, 1'b1, 3'd0, mpie_q, 3'd0}
                                    : {19'd0, {2{n_mpp_set}}, 3'd0, n_mpie_q, 3'd0, n_mie_q, 3'd0};
     assign snap_mie      = n_mie_r;
     assign snap_mtvec    = n_mtvec_r;
@@ -120,6 +122,8 @@ module csr_file (
         end else if (trap_en) begin
             mpie_q <= mie_q; mie_q <= 1'b0; mpp_set <= 1'b1;
             mepc_r <= trap_pc & 32'hFFFF_FFFC; mcause_r <= trap_cause; mtval_r <= trap_tval;
+        end else if (mret_en) begin
+            mie_q <= mpie_q; mpie_q <= 1'b1;
         end else if (en && !illegal && do_write) begin
             case (addr)
                 A_MSTATUS: begin mie_q <= nxt[3]; mpie_q <= nxt[7]; mpp_set <= 1'b1; end
