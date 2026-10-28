@@ -2,9 +2,6 @@
 
 Portfolio project: 5-stage in-order RV32I (+Zicsr M-mode) core in SystemVerilog, verified with Verilator + cocotb against the Sail RISC-V reference model.
 
-## AI assistance
-Design guidance, RTL drafts, scripts and tests are written with an AI assistant (Claude) and reviewed by the author. AI-written RTL and tests are treated as unverified until they pass an independent oracle (Sail comparison, riscv-tests, ACT4, formal).
-
 ## Status
 Phase 3 complete (5-stage pipeline: WB->ID bypass, EX forwarding from MEM/WB, one-cycle load-use stall, branch/jump resolved in EX). All 40 rv32ui ELFs, ls_edge and the directed hazard test haz.S match Sail instruction by instruction (pc, insn, next pc, rd, loads, stores). 12 core-level mutants (CMUT-001..012, see bugs.md) are caught by the cosim. CSRs, traps and performance results are not done yet.
 
