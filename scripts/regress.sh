@@ -20,6 +20,7 @@ grep -qE "TESTS=[0-9]+ PASS=[0-9]+ FAIL=0" logs/smoke.log; check "smoke: no fail
 ./scripts/rv32ui_sail.sh > logs/rv32ui_sail.log 2>&1; check "sail: rv32ui oracle run" $? 0
 tail -n 1 logs/rv32ui_sail.log
 ./scripts/unit.sh > logs/unit.log 2>&1; check "unit tests (all modules)" $? 0
+python tests/gen/test_gen_prog.py > logs/gen_unit.log 2>&1; check "generator unit test" $? 0
 ./scripts/lint.sh > logs/lint.log 2>&1; check "lint (all modules)" $? 0
 ./scripts/mutations.sh > logs/mutations.log 2>&1; check "mutations all caught" $? 0
 
