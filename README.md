@@ -7,7 +7,7 @@ Phase 4 step B complete: Zicsr CSRs and M-mode traps match Sail instruction by i
 
 ## Known deviations (to keep honest)
 - rv32ui tests run with a custom CSR-free `sw/env/riscv_test.h`, not the stock `env/p` startup. `fence_i` and `ma_data` are skipped.
-- Compiler is GCC 16.1.0 / binutils 2.47 (ACT4 officially tests GCC 15 / binutils 2.44).
+- Compiler is GCC 16.1.0 / binutils 2.47 (ACT4 officially tests GCC 15 / binutils 2.44). GCC 16.1 builds and passes the ACT4 tests used here; equivalence with GCC 15 not shown.
 - Test memory is 64 KiB at 0x80000000 (scripts/run_core_elf.sh passes 65536 unless MEM_BYTES is set). The ACT4 tests are bigger (I-add-00 has a 74,496-byte image extent), so `act4/run_dut.sh` sets MEM_BYTES=262144 (256 KiB) and builds a separate Verilator model in `tests/system/sim_build_act`. The default in `tb/tb_top.sv` is unchanged.
 - Memory is ideal: combinational instruction and data reads, so there is no memory wait state. A real SRAM or cache interface is not modelled.
 - The load-use stall is conservative (it matches rs1/rs2 instruction fields even when the instruction does not use them), so some stalls are unnecessary. Correctness is not affected.
