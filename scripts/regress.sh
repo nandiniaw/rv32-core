@@ -45,5 +45,7 @@ for p in sw/probes/*.S; do n=$(basename $p .S)
   else echo "FAIL  probe $n failed without a MISMATCH (see logs/probe_$n.log)"; status=1; fi
 done
 
+if ./scripts/rand_regress.sh 1 20 > logs/rand_short.log 2>&1; then echo "PASS  random plain seeds 1..20"; else echo "FAIL  random plain seeds 1..20"; status=1; fi
+if ./scripts/rand_regress.sh 300 20 --traps > logs/rand_short_t.log 2>&1; then echo "PASS  random trap seeds 300..319"; else echo "FAIL  random trap seeds 300..319"; status=1; fi
 [ $status -eq 0 ] && echo "ALL PASS" || echo "REGRESSION FAILED"
 exit $status
