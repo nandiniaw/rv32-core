@@ -10,3 +10,4 @@ sim_build_mut/
 formal/retire_*.cfg
 formal/fmut.cfg
 sim_build_cov/
+sim_build_act/

@@ -1,0 +1,1 @@
+sail_riscv_sim {debug:--trace --trace-output __TRACEFILE__} --config /home/no_one/rv32-core/act4/sail.json

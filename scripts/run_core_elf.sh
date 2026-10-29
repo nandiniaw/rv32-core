@@ -9,7 +9,7 @@ max=${2:-200000}
 name=$(basename "$elf")
 hex=/tmp/$name.hex
 trace=/tmp/$name.core.trace
-python3 "$root/scripts/elf2hex.py" "$elf" "$hex" 65536 || exit 2
+python3 "$root/scripts/elf2hex.py" "$elf" "$hex" "${MEM_BYTES:-65536}" || exit 2
 cd "$root/tests/system" || exit 2
 rm -f results.xml
 ELF="$elf" MAX_INSTR="$max" TRACE_OUT="$trace" make ${MAKE_ARGS:-} COCOTB_PLUSARGS="+HEX=$hex" > "/tmp/$name.sim.log" 2>&1

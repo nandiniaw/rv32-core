@@ -5,6 +5,7 @@ The hex image is loaded by tb_top through +HEX (see scripts/run_core_elf.sh).
 tohost is a 64-bit location written as two 32-bit stores; the exit code is value >> 1 when bit 0 is set.
 """
 import os
+import re
 import subprocess
 
 import cocotb
@@ -39,6 +40,7 @@ async def run_elf(dut):
     dut.rst.value = 0  # released right after a rising edge, so the first sample below is instruction 0
 
     seen = {}
+    console = []
     retired = 0
     idle = 0
     with open(trace_path, "w") as trace:
@@ -66,6 +68,11 @@ async def run_elf(dut):
                 if addr in (tohost, tohost + 4):
                     assert wmask == 0xF, f"partial store to tohost, wmask={wmask:x}"
                     seen[addr - tohost] = val(dut.rvfi_mem_wdata)
+                    if addr == tohost + 4 and 0 in seen:
+                        hi, lo = seen[4], seen[0]
+                        if (hi >> 24) == 1 and ((hi >> 16) & 0xFF) == 1:  # HTIF device 1 (terminal), cmd 1 (putc)
+                            console.append(chr(lo & 0xFF))
+                            seen.clear()
             retired += 1
             if 0 in seen and 4 in seen:
                 break
@@ -73,6 +80,12 @@ async def run_elf(dut):
             raise AssertionError(f"timeout: no tohost result after {max_instr} instructions")
 
     value = (seen[4] << 32) | seen[0]
-    dut._log.info(f"tohost = 0x{value:x} after {retired} instructions")
+    text = "".join(console)
+    summary = re.findall(r"RVCP-SUMMARY: TEST (PASSED|FAILED|SIGRUN)", text)
+    dut._log.info(f"tohost = 0x{value:x} after {retired} instructions, RVCP-SUMMARY {summary}")
+    if text:
+        dut._log.info("console output:\n" + text)
+    if summary:
+        assert summary[0] == "PASSED", f"RVCP-SUMMARY reports {summary[0]}"
     assert value & 1, f"tohost 0x{value:x}: bit 0 not set, not an exit request"
     assert (value >> 1) == 0, f"test reported failure, exit code {value >> 1}"
