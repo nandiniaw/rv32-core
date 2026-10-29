@@ -3,6 +3,8 @@
 Portfolio project: 5-stage in-order RV32I (+Zicsr M-mode) core in SystemVerilog, verified with Verilator + cocotb against the Sail RISC-V reference model.
 
 ## Status
+Phase 4 and Phase 5 complete. Phase 5: random tests (200 seeds pass; 12/20 plain and 18/20 trap-mode mutants caught), Verilator coverage (line 98.8%), trace-based functional coverage (22/23 listed bins), and ACT4 (45/45 ELFs, I and Zicsr, on Sail and the RTL; one config, one test set, not a compliance claim). Phase 4 detail follows.
+
 Phase 4 step B complete: Zicsr CSRs and M-mode traps match Sail instruction by instruction, on the Phase 3 5-stage pipeline (WB->ID bypass, EX forwarding, one-cycle load-use stall, branch/jump resolved in EX). Traps covered: ecall, ebreak, mret, illegal instruction, illegal CSR access, fence (a nop), misaligned jalr/load/store (mcause 0/4/6). All 40 rv32ui ELFs, ls_edge, haz and 16 CSR/trap probes match Sail (pc, insn, next pc, trap, intr, rd, loads, stores, 7 CSRs). 20 core-level mutants (CMUT-001..020, see bugs.md) are caught by the cosim. Performance results are not done. Phase 5 also ran the RISC-V architectural tests (ACT4): 45 of 45 ELFs (I, Zicsr) pass on Sail and on the RTL, see the Phase 5a section.
 
 ## Known deviations (to keep honest)
