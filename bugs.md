@@ -116,3 +116,18 @@ CAUGHT means at least one check reported FAIL.
 | CMUT-011 | reg | 58 s |
 | CMUT-012 | reg | 56 s |
 Counterexample inspected for CMUT-008 only (formal/vcd_table.py on pc_fwd_ch0/engine_0/trace.vcd): a taken bne (0xf70a94e3) at 0x80000014 retires with pc_wdata 0x7fffff7c, then the wrong-path sb (0x7d180823) at 0x80000018 (branch pc + 4) retires next, so pc_fwd fails. That is the intended failure: the instruction behind a taken branch is not squashed. The other 11 traces were not inspected.
+
+## Core trap mutants (CMUT-013 to CMUT-020, injected; each caught by Sail cosim on its probe)
+- CMUT-013 ecall cause 11 -> 10 (ecall.elf)
+- CMUT-014 ebreak mtval pc -> 0 (ebreak.elf)
+- CMUT-015 mret target mepc -> mepc + 4 (mret_flow.elf)
+- CMUT-016 illegal cause 2 -> 1 (illegal.elf)
+- CMUT-017 fence treated as illegal (fence.elf)
+- CMUT-018 misaligned jump mtval target -> pc (ma_jalr.elf)
+- CMUT-019 misaligned load cause 4 -> 6 (ma_lw.elf)
+- CMUT-020 misaligned store cause 6 -> 4 (ma_sw.elf)
+
+## Equivalent mutant (not a test gap)
+- Tried: remove `!mem_trap` from wmask_m in rtl/core.sv so a trapping store could write memory.
+- Result: not caught on ma_sw.elf (COMPARE PASS).
+- Reason: rtl/lsu.sv already forces mask = 0 when the address is misaligned, so two guards stop the write and removing one changes no output. Dropped from core_mutations.sh.
