@@ -8,11 +8,18 @@ Phase 4 step B complete: Zicsr CSRs and M-mode traps match Sail instruction by i
 ## Known deviations (to keep honest)
 - rv32ui tests run with a custom CSR-free `sw/env/riscv_test.h`, not the stock `env/p` startup. `fence_i` and `ma_data` are skipped.
 - Compiler is GCC 16.1.0 / binutils 2.47 (ACT4 officially tests GCC 15 / binutils 2.44).
-- Test memory is 16 KiB at 0x80000000 (largest rv32ui extent seen: 0x80002050).
+- Test memory is 64 KiB at 0x80000000 (scripts/run_core_elf.sh passes 65536).
 - Memory is ideal: combinational instruction and data reads, so there is no memory wait state. A real SRAM or cache interface is not modelled.
 - The load-use stall is conservative (it matches rs1/rs2 instruction fields even when the instruction does not use them), so some stalls are unnecessary. Correctness is not affected.
 - Traps: M-mode only, no interrupts, direct-mode mtvec only, unimplemented CSRs trap as illegal, mstatush is constant, MPP resets to 0, the mcause test sweeps a subset of causes.
-- Cosim covers what rv32ui, ls_edge, haz and the 16 probes exercise. Not observed: vectored mtvec, mret with MPP reset 0, wfi, fence.i. The comparator and the tests are written by the same author. The last instruction's next pc is not checked. No coverage percentages are measured. One mutant (removing `!mem_trap` from wmask_m) is equivalent because lsu.sv already zeroes the mask; see bugs.md.
+- Cosim covers what rv32ui, ls_edge, haz and the 16 probes exercise. Not observed: vectored mtvec, mret with MPP reset 0, wfi, fence.i. The comparator and the tests are written by the same author. The last instruction's next pc is not checked. One mutant (removing `!mem_trap` from wmask_m) is equivalent because lsu.sv already zeroes the mask; see bugs.md.
+
+## Phase 5: random tests and coverage
+- Random tests: `tests/gen/gen_prog.py` (seeded), `scripts/rand_regress.sh`. 200 seeds passed against Sail (100 plain, 100 with traps). `regress.sh` runs 20 plain and 20 trap seeds.
+- Mutants caught by random seeds (first 30 seeds, `scripts/rand_mutants.sh`, tables in docs/): plain 12/20, with traps 18/20. Survivors CMUT-017 (fence) and CMUT-018 (misaligned jalr mtval): the generator has no fence or misaligned-jalr template. Directed probes `fence` and `ma_jalr` catch both.
+- Functional coverage (`scripts/fcov.py`, `docs/fcov_report.txt`): 22 of 23 bins I listed are hit over 200 traces. `trap_cause_0` is not reached. Bins are retire-distance bins from RVFI traces, not RTL selectors, and the bin list is my own, so this does not measure completeness.
+- Verilator coverage (`scripts/vcov.sh`, `docs/vcov_summary.txt`, 38 runs mixing random seeds and directed tests): line 98.8%, toggle 79.7%, branch 95.0%, expr 92.9%. Most missed toggles are upper bits of wide signals and constant signals. Not a proof of correctness.
+- Probe `illegal2` covers decoder illegal encodings that no other test hit.
 
 ## Reproduce
 `./scripts/versions.sh`, `./scripts/regress.sh`, `./scripts/unit.sh`. Versions are in `versions.txt`.
